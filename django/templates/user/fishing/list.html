@@ -1,0 +1,119 @@
+{% extends 'user/base.html' %}
+{% block content %}
+{% load static %}
+{% load humanize %}
+{% load fishing_filter %}
+
+
+<div class="row mb-3">
+	<div class="col-12 col-xl-2 align-self-center text-center">
+		<h6 class="m-0">빠른 자리 찾기</h6>
+	</div>
+
+	<div class="col-6 col-md-3 col-xl-2 mb-1">
+		<input type="text" name="keyword" class="form-control" placeholder="항구">
+	</div>
+	<div class="col-6 col-md-3 col-xl-2 mb-1">
+		<input type="text" name="keyword" class="form-control" placeholder="어종">
+	</div>
+	<div class="col-6 col-md-3 col-xl-2 mb-1">
+		<input type="date" name="keyword" value="{% tomorrow '%Y-%m-%d' %}" class="form-control" placeholder="날짜">
+	</div>
+
+	<div class="col-6 col-md-3 col-xl-2 mb-1">
+		<select class="form-select">
+			<option>인원</option>
+			<option value="1">1명</option>
+			<option value="2">2명</option>
+			<option value="3">3명</option>
+			<option value="4">4명</option>
+			<option value="5">5명</option>
+			<option value="6">6명</option>
+			<option value="7">7명</option>
+			<option value="8">8명</option>
+			<option value="9">9명</option>
+			<option value="10">10명</option>
+			<option value="one">독배</option>
+		</select>
+	</div>
+	
+	<div class="col-12 col-xl-2 d-flex justify-content-center mb-1">
+		<button type="submit" class="btn btn-primary w-100">검색</button>
+	</div>
+</div>
+
+
+<div class="row">
+	{% for fishing_obj in page_obj %}
+    <div class="col-12 col-md-6 col-lg-4 col-xxl-3">
+		<a href="{% url 'fishing:user_fishing_detail' pk=fishing_obj.pk %}">
+        	<div class="card">
+
+				<img class="card-img-top img-fluid" src="{% if fishing_obj.thumbnail %}{{fishing_obj.thumbnail.url}}{% else %}{% static 'user/images/no-middle.jpg' %}{% endif %}" alt="{{fishing_obj.display_business_name}}">
+			
+				<div class="card-body">
+					<div class="flex-grow-1 mb-3">
+						<div class="badge badge-soft-info font-size-12">Development</div>
+					</div>
+					
+					<h4 class="card-title mb-0">[{{fishing_obj.harbor.name}}] {{fishing_obj.display_business_name}}</h4>
+					<p class="card-text mb-0">
+						{% for species in fishing_obj.species.all %}
+						{{species.name}}{% if not forloop.last %}, {% endif %}
+						{% endfor %}
+					</p>
+
+
+				</div>
+				<ul class="list-group list-group-flush">
+					<li class="list-group-item">남은자리 : 10명</li>
+				</ul>
+       	 	</div><!-- end card -->
+		</a>
+    </div>
+	{% endfor %}
+</div>
+
+<div class="row mb-5">
+	<ul class="pagination justify-content-center m-0">
+		{% if page_obj.has_previous %}
+		<li class="page-item ">
+			<a class="page-link" href="?page={{page_obj.previous_page_number }}{% if 'type' in request.GET %}&type={{request.GET.type}}{% endif %}">이전</a>
+		</li>
+		{% else %}
+		<li class="page-item disabled">
+			<span class="page-link">이전</span>
+		</li>
+		{% endif %}
+
+		{% for page_number in page_obj.paginator.page_range %}
+			{% if page_number >= page_obj.number|add:-2 and page_number <= page_obj.number|add:2 %}
+				{% if page_number == page_obj.number %}
+				<li class="page-item active">
+					<span class="page-link">{{ page_number }}</span>
+				</li>
+				{% else %}
+				<li class="page-item">
+						<a class="page-link" href="?page={{page_number }}{% if 'type' in request.GET %}&type={{request.GET.type}}{% endif %}">{{ page_number }}</a>
+				</li>
+				{% endif %}
+			{% endif %}
+		{% endfor %}
+
+		{% if page_obj.has_next  %}
+		<li class="page-item">
+			<a class="page-link" href="?page={{page_obj.next_page_number }}{% if 'type' in request.GET %}&type={{request.GET.type}}{% endif %}">다음</a> 
+		</li>
+		{% else %}
+		<li class="page-item disabled">
+			<span class="page-link">다음</span>
+		</li>
+		{% endif %}
+	</ul>
+</div>
+<!-- end row -->
+    
+
+
+
+{% endblock %}
