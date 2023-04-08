@@ -13,103 +13,144 @@ from django.core import serializers
 User = get_user_model()
 
 @csrf_exempt 
-def create_crawled_basic_data(request):
-	if request.method == 'POST':
-		business_name = request.POST.get('business_name')
-		business_address = request.POST.get('business_address')
-		harbor = request.POST.get('harbor')
-		sea = request.POST.get('sea')
-		fishing_type = request.POST.get('fishing_type')
-		site_url = request.POST.get('site_url')
-		referrer = request.POST.get('referrer')
-		uid = request.POST.get('uid')
-		try:
-			thumbnail = request.FILES["thumbnail"]
-		except:
-			thumbnail = None
-		introduce = request.POST.get('introduce')
-		seat = request.POST.get('seat')
-		price = request.POST.get('price')
+def create_sunsang24_crawled_fishing_data(request):
+    if request.method == 'POST':
+        # 데이터 추출
+        data = request.POST
+        thumbnail = request.FILES.get("thumbnail", None)
 
+        # 모델 데이터 생성
+        fishing_type_obj, created = FishingType.objects.get_or_create(name='선상')
+        harbor_obj, created  = Harbor.objects.get_or_create(name=data.get('harbor', ''), defaults={"sea": None})
+        fishing_crawler_obj, created  = FishingCrawler.objects.get_or_create(referrer=data.get('referrer', ''), uid=data.get('uid', ''))
 
-		fishing_type_obj, created = FishingType.objects.get_or_create(
-			name=fishing_type
-		)
+        fishing_data = {
+            "display_business_name": data.get('display_business_name', ''), 
+            "harbor": harbor_obj,
+            "business_address": data.get('business_address', ''),
+            "fishing_type": fishing_type_obj,
+            "thumbnail": thumbnail,
+            "introduce": data.get('introduce', ''),
+        }
+        fishing_obj, created = Fishing.objects.update_or_create(fishing_crawler=fishing_crawler_obj, defaults=fishing_data)
 
-
-		harbor_obj, created = Harbor.objects.get_or_create(
-			name=harbor, 
-			defaults={
-				"sea": sea
-			},
-		)
-
-		fishing_crawler_obj, created = FishingCrawler.objects.get_or_create(
-			referrer=referrer, uid= uid
-		)
-
-		try:
-			fishing_obj, created = Fishing.objects.update_or_create(
-				fishing_crawler=fishing_crawler_obj, 
-				defaults={
-					"display_business_name":business_name, 
-					"harbor" : harbor_obj,
-					"business_address": business_address,
-					"fishing_type": fishing_type_obj,
-					"site_url": site_url,
-					"thumbnail": thumbnail,
-					"introduce": introduce,
-					"seat": seat,
-					"price": price,
-				}
-			)
-		except:
-			fishing_obj = None
-
-		if fishing_obj is not None:
-			for species in str(species).split(','):
-				fishing_species_item_obj, created = FishingSpeciesItem.objects.get_or_create(
-					name=species
-				)
-
-				if fishing_species_item_obj not in fishing_obj.fishingspecies_set.all():
-					FishingSpecies.objects.create(
-						fishing=fishing_obj,
-						fishing_species_item=fishing_species_item_obj
-					)
-
-			result = {'result': '200', 'result_text': '완료'}
-		else:
-			result = {'result': '204', 'result_text': '실패'}
-		return JsonResponse(result)
-		
-	else:
-		result = {'result': '201', 'result_text': '권한이 없습니다.'}
-		return JsonResponse(result)	
+        # 결과 반환
+        return JsonResponse({'result': '200'})
+        
+    else:
+        return JsonResponse({'result': '200'})
+    
 
 
 @csrf_exempt 
-def site_url_none_data(request):
-	if request.method == 'POST':
-		pk = request.POST.get('pk')
-		site_url = request.POST.get('site_url')
+def create_sunsang24_crawled_species_data(request):
+	def handle_post_request():
+		pk = int(request.POST.get('pk'))
+		species = request.POST.get('species')
+		month = datetime.strptime(request.POST.get('month'), '%Y%m').date()
+		display_business_name = request.POST.get('display_business_name')
+		maximum_seat = request.POST.get('maximum_seat')
+
 		try:
 			fishing_obj = Fishing.objects.get(pk=pk)
-			fishing_obj.site_url = site_url
+			fishing_obj.maximum_seat = maximum_seat
 			fishing_obj.save()
-			result = {'result': '200', 'result_text': '완료'}
-			
-		except:
-			result = {'result': '201', 'result_text': '실패'}
-		return JsonResponse(result)
-	else:
-		q = Q()
-		q.add(Q(site_url = None), q.OR)
-		q.add(Q(site_url = "https://www.sunsang24.com/"), q.OR)
-		fishing_objs =  Fishing.objects.filter(q).order_by("-id")
-		fishing_list = serializers.serialize('json', fishing_objs, ensure_ascii=False)
+		except Fishing.DoesNotExist:
+			return JsonResponse({'result': '200'})
 		
-		return HttpResponse(fishing_list, content_type=u"application/json; charset=utf-8",)
+		if not species or species == 'None':
+			return JsonResponse({'result': '200'})
+			
+		if fishing_obj.display_business_name != display_business_name:
+			return JsonResponse({'result': '200'})
+		
+		for specie in species.split(','):
+			fishing_species_item_obj, _ = FishingSpeciesItem.objects.get_or_create(name=specie)
+			FishingSpeciesMonth.objects.update_or_create(
+				fishing=fishing_obj,
+				month=month,
+				defaults={
+					'fishing_species_item': fishing_species_item_obj,
+					'maximum_seat': maximum_seat
+				}
+			)
+            
+		return JsonResponse({'result': '200'})
+
+	if request.method == 'POST':
+		return handle_post_request()
+
+	q = Q(is_deleted=False, fishing_crawler__isnull=False)
+	fishing_objs = Fishing.objects.filter(q).select_related('fishing_crawler')
+
+	fishing_list = [
+		{
+			'pk': fishing_obj.pk,
+			'uid': fishing_obj.fishing_crawler.uid,
+			'referrer': fishing_obj.fishing_crawler.referrer,
+			'display_business_name': fishing_obj.display_business_name,
+		} for fishing_obj in fishing_objs
+	]
+
+	return JsonResponse(fishing_list, safe=False, json_dumps_params={'ensure_ascii': False})
+
+
+
+@csrf_exempt 
+def create_sunsang24_crawled_booked_data(request):
+	def handle_post_request():
+		pk = int(request.POST.get('pk'))
+		booked_seat = request.POST.get('booked_seat')
+		date = datetime.strptime(request.POST.get('date'), '%Y-%m-%d').date()
+		display_business_name = request.POST.get('display_business_name')
+
+		try:
+			fishing_obj = Fishing.objects.get(pk=pk)
+		except Fishing.DoesNotExist:
+			return JsonResponse({'result': '200'})
+
+		if fishing_obj.display_business_name != display_business_name:
+			return JsonResponse({'result': '200'})
+		
+
+		if fishing_obj.display_business_name == display_business_name:
+			fishing_obj.needs_check = False
+			user = User.objects.get(pk=1)
+			FishingBooking.objects.update_or_create(
+				fishing=fishing_obj,
+				date=date,
+				defaults={
+					"user":user, 
+					"date" : date,
+					"person": booked_seat,
+				},
+			)
+
+
+		return JsonResponse({'result': '200'})
+	
+
+	if request.method == 'POST':
+		return handle_post_request()
+
+	return JsonResponse({'result': '200'})
+
+
+@csrf_exempt 
+def read_fishing_data(request):
+	q = Q(is_deleted=False, fishing_crawler__isnull=False)
+	fishing_objs = Fishing.objects.filter(q).select_related('fishing_crawler')
+
+	fishing_list = [
+		{
+			'pk': fishing_obj.pk,
+			'uid': fishing_obj.fishing_crawler.uid,
+			'referrer': fishing_obj.fishing_crawler.referrer,
+			'display_business_name': fishing_obj.display_business_name,
+		} for fishing_obj in fishing_objs
+	]
+
+	return JsonResponse(fishing_list, safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 
@@ -126,63 +167,6 @@ def del_site_url_none_data(request):
 		return JsonResponse(result)
 
 
-
-@csrf_exempt 
-def  reserved_data(request):
-	if request.method == 'POST':
-		pk = int(request.POST.get('pk'))
-		title = str(request.POST.get('title'))
-		species = str(request.POST.get('species'))
-		remaining_seat = int(request.POST.get('remaining_seat'))
-		booked_seat = int(request.POST.get('booked_seat'))
-		date = datetime.strptime(request.POST.get('date'), '%Y-%m-%d')
-		species_date = f"{datetime.strptime(request.POST.get('date'), '%Y-%m')}01"
-
-		try:
-			fishing_obj = Fishing.objects.get(pk=pk)
-		except:
-			result = {'result': '201', 'result_text': '실패'}
-			return JsonResponse(result)
-		
-		if fishing_obj.seat < remaining_seat:
-			fishing_obj.seat = remaining_seat
-		
-
-		if species == '':
-			species = None
-
-		has_species = False
-		if species != None:
-			for specie in str(species).split(','):
-				if specie in [species.fishing_species_item.name for species in fishing_obj.fishingspecies_set.all()]:
-					has_species = True
-					break
-			
-
-		if fishing_obj.display_business_name == title and has_species:
-			fishing_obj.needs_check = False
-			user = User.objects.get(pk=1)
-			FishingBooking.objects.update_or_create(
-				fishing=fishing_obj,
-				date=date,
-				defaults={
-					"user":user, 
-					"date" : date,
-					"person": booked_seat,
-				},
-			)
-
-		fishing_obj.save()
-
-		return HttpResponse('')
-	else:
-		q = Q()
-		q &= ~Q(site_url = None)
-		q &= Q(is_deleted = False)
-		fishing_objs =  Fishing.objects.all()
-		fishing_list = serializers.serialize('json', fishing_objs, ensure_ascii=False)
-		
-		return HttpResponse(fishing_list, content_type=u"application/json; charset=utf-8",)
 
 
 

@@ -25,6 +25,13 @@ class FishingSpeciesItem(models.Model):
 		db_table = 'fishing_species_item'
 		#managed = False
 
+class FishingGroup(models.Model):
+	name = models.CharField(max_length=255)
+
+	class Meta:
+		db_table = 'fishing_group'
+		#managed = False
+
 class FishingCrawler(models.Model):
 	referrer = models.CharField(max_length=255)
 	uid = models.CharField(max_length=255)
@@ -33,13 +40,6 @@ class FishingCrawler(models.Model):
 		db_table = 'fishing_crawler'
 		#managed = False
 
-
-class FishingGroup(models.Model):
-	name = models.CharField(max_length=255)
-
-	class Meta:
-		db_table = 'fishing_group'
-		#managed = False
 
 # Create your models here.
 class Fishing(models.Model):
@@ -71,7 +71,7 @@ class Fishing(models.Model):
 	folder = 'fishing'
 	thumbnail = models.ImageField(upload_to=upload_to, null=True)
 	introduce = models.TextField(null=True)
-	seat = models.PositiveIntegerField(default=0)
+	maximum_seat = models.PositiveIntegerField(default=0)
 	price = models.DecimalField(max_digits=14, decimal_places=2, null=True)
 	created_at = models.DateTimeField(auto_now_add=True, auto_now=False)
 	updated_at = models.DateTimeField(auto_now_add=False, auto_now=True)
@@ -83,7 +83,7 @@ class Fishing(models.Model):
 		#managed = False
 
 
-class FishingSpecies(models.Model):
+class FishingSpeciesMonth(models.Model):
 	fishing = models.ForeignKey(
 		Fishing,
 		on_delete=models.CASCADE
@@ -93,10 +93,11 @@ class FishingSpecies(models.Model):
 		on_delete=models.CASCADE,
 		null=True
 	)
-	date = models.DateField()
+	month = models.DateTimeField()
+	maximum_seat = models.PositiveIntegerField()
 
 	class Meta:
-		db_table = 'fishing_species'
+		db_table = 'fishing_species_month'
 		#managed = False
 
 
