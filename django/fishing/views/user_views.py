@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Case, Subquery, Q, Sum, Value, When, F, OuterRef, ExpressionWrapper
+from django.db.models.functions import Coalesce
 from ..models import *
 from harbor.models import *
 from django.core.paginator import Paginator
@@ -23,14 +24,14 @@ class UserFishingLV(ListView):
 	template_name = 'user/fishing/list.html'
 	context_object_name = "fishing_objs"
 	paginate_by = 36
-	paginate_orphans = 5
+
 
 	ordering = ['-id']
 	
 
 	fishing_type_dict = {
 		"user_fishing_list":{
-			"filter":"선상",
+			"filter":"전체",
 			"title":"다낚아 - 실시간예약",
 		},
 		"user_boat_fishing_list":{
@@ -46,28 +47,64 @@ class UserFishingLV(ListView):
 			"title":"다낚아 - 체험낚시",
 		}
 	}
+
+	
+	
 	
 	def get_context_data(self, **kwargs):
 		current_url_name = resolve(self.request.path_info).url_name
 		context = super().get_context_data(**kwargs)
 		title = self.fishing_type_dict[current_url_name]['title']
 
-
 		context['seo'] = {
 			'title': title,
 		}
+
+		today = datetime.today().date()
+		context['year'] = self.request.GET.get('year', str(today.year))
+		context['month'] = self.request.GET.get('month', str(today.month))
+		context['day'] = self.request.GET.get('day', str(today.day))
+
 		return context
 
-	def get_queryset(self, **kwargs): # 컨텍스트 오버라이딩
-		current_url_name = resolve(self.request.path_info).url_name
-		q = Q()
-		#q &= Q(needs_check = False)
-		if current_url_name != "user_fishing_list":
-			q &= Q(fishing_type__name = self.fishing_type_dict[current_url_name]['filter'])
-		if self.request.GET.get('name'):
-			q &= Q(display_business_name__icontains = self.request.GET.get('name'))
+	def get_queryset(self, **kwargs):
 		qs = super().get_queryset(**kwargs)
-		return qs.filter(q)
+		current_url_name = resolve(self.request.path_info).url_name
+		today = datetime.today().date()
+		year = self.request.GET.get('year', str(today.year))
+		month = self.request.GET.get('month', str(today.month))
+		day = self.request.GET.get('day', str(today.day))
+		search_date = datetime.strptime(year + month.zfill(2) + day, '%Y%m%d').date()
+		species_month_date = year + month.zfill(2)
+		
+
+
+		if self.request.GET.get('name'):
+			qs = qs.filter(display_business_name__icontains=self.request.GET.get('name'))
+
+		if current_url_name != "user_fishing_list":
+			filter_name = self.fishing_type_dict[current_url_name]['filter']
+			qs = qs.filter(fishing_type__name=filter_name)
+		else:
+			qs = qs.filter(fishingspeciesmonth__month=species_month_date)
+
+			booking_sum_subquery = FishingBooking.objects.filter(date=search_date, fishing_id=OuterRef('pk')).values('fishing_id').annotate(
+				total_person=Sum('person')).values('fishing_id', 'total_person')
+
+			qs = qs.annotate(booking_sum=Coalesce(Subquery(booking_sum_subquery.values('total_person')), Value(0)))
+
+			qs = qs.annotate(
+				available_seats=ExpressionWrapper(
+					F('fishingspeciesmonth__maximum_seat') - F('booking_sum'),
+					output_field=models.IntegerField()
+				)
+			).filter(available_seats__gt=0)
+
+		return qs
+
+
+
+
 
 
 
@@ -85,15 +122,16 @@ class UserFishingDV(DetailView):
 		uid = self.object.fishing_crawler.uid
 
 		today = datetime.today().date()
+		
 		if self.request.GET.get('year'):
 			year = self.request.GET.get('year')
 		else:
 			year = str(today.year)
 
 		if self.request.GET.get('year') and self.request.GET.get('month'):
-			month = self.request.GET.get('month')
+			month = self.request.GET.get('month').zfill(2)
 		else:
-			month = str(today.month)
+			month = str(today.month).zfill(2)
 
 		if self.request.GET.get('year') and self.request.GET.get('month') and self.request.GET.get('day'):
 			day = self.request.GET.get('day')

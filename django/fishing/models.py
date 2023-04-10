@@ -93,7 +93,7 @@ class FishingSpeciesMonth(models.Model):
 		on_delete=models.CASCADE,
 		null=True
 	)
-	month = models.DateTimeField()
+	month = models.CharField(max_length=255) #202304 형식으로 들어감
 	maximum_seat = models.PositiveIntegerField()
 
 	class Meta:

@@ -47,7 +47,7 @@ def create_sunsang24_crawled_species_data(request):
 	def handle_post_request():
 		pk = int(request.POST.get('pk'))
 		species = request.POST.get('species')
-		month = datetime.strptime(request.POST.get('month'), '%Y%m').date()
+		month = request.POST.get('month')
 		display_business_name = request.POST.get('display_business_name')
 		maximum_seat = request.POST.get('maximum_seat')
 
@@ -65,6 +65,7 @@ def create_sunsang24_crawled_species_data(request):
 			return JsonResponse({'result': '200'})
 		
 		for specie in species.split(','):
+
 			fishing_species_item_obj, _ = FishingSpeciesItem.objects.get_or_create(name=specie)
 			FishingSpeciesMonth.objects.update_or_create(
 				fishing=fishing_obj,
@@ -152,36 +153,3 @@ def read_fishing_data(request):
 
 	return JsonResponse(fishing_list, safe=False, json_dumps_params={'ensure_ascii': False})
 
-
-
-@csrf_exempt 
-def del_site_url_none_data(request):
-	if request.method == 'POST':
-		pk = request.POST.get('pk')
-		Fishing.objects.get(pk=pk).delete()
-		
-		result = {'result': '200', 'result_text': '완료'}
-		return JsonResponse(result)
-	else:
-		result = {'result': '201', 'result_text': '실패'}
-		return JsonResponse(result)
-
-
-
-
-
-@csrf_exempt 
-def api_test(request):
-	#필요없는 데이터 삭제하기
-	'''pk = request.GET.get('pk')
-	Fishing.objects.get(pk=pk).delete()'''
-
-	#파싱데이터 이름 변경하는거
-	'''fishing_objs =  Fishing.objects.filter(is_changed_crawled_business_name=False).order_by("-id")
-	for fishing_obj in fishing_objs:
-		fishing_obj.crawler_business_name = fishing_obj.business_name
-		fishing_obj.is_changed_crawled_business_name = True
-		fishing_obj.save()'''
-
-		
-	return HttpResponse('1')
