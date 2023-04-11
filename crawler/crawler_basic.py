@@ -66,7 +66,7 @@ class DanakkaCrawler:
 				harbor = group_data.get('port_name')
 				introduce = group_data.get('intro_memo')
 
-				path = os.getcwd() + '/' + thumbnail_url.split('/')[-1]
+				path = os.getcwd() + '/thumbnail/' + thumbnail_url.split('/')[-1]
 				thumbnail = open(path, 'rb') if os.path.exists(path) else None
 
 				data = {
