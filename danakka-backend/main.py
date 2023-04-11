@@ -1,5 +1,5 @@
 from typing import Optional
-import fishing.routers as fishing
+import booking.routers as booking
 from fastapi import FastAPI, Depends, Path, HTTPException
 
 
@@ -7,5 +7,5 @@ from fastapi import FastAPI, Depends, Path, HTTPException
 app = FastAPI()
 
 
-app.include_router(fishing.router)
-app.include_router(fishing.crawler.router)
+app.include_router(booking.router)
+app.include_router(booking.crawler.router)

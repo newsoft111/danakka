@@ -26,8 +26,8 @@ class DanakkaCrawler:
 		#self.driver = driver
 
 		#선상24
+		self.sunsang24_check_fishing_data()
 		self.sunsang24_check_species_data()
-		#self.sunsang24_booked()
 			
 
 	#배 확인후 등록
@@ -60,14 +60,25 @@ class DanakkaCrawler:
 				group_res = requests.get(group_url)
 				if group_res.status_code != 200:
 					continue
-
-				group_data = group_res.json()[0]
+				
+				try:
+					group_data = group_res.json()[0]
+				except:
+					continue
 				business_address = group_data.get('address')
 				harbor = group_data.get('port_name')
 				introduce = group_data.get('intro_memo')
 
-				path = os.getcwd() + '/thumbnail/' + thumbnail_url.split('/')[-1]
-				thumbnail = open(path, 'rb') if os.path.exists(path) else None
+				path = os.getcwd() + f'\\thumbnail\\' + thumbnail_url.split('/')[-1]
+
+				try:
+					with open(path, 'wb') as f:
+						f.write(requests.get(thumbnail_url).content)
+
+					thumbnail = {"thumbnail":open(path, "rb")}
+				except Exception as e:
+					thumbnail = None
+
 
 				data = {
 					'display_business_name': str(business_name),
@@ -75,14 +86,18 @@ class DanakkaCrawler:
 					'business_address': business_address,
 					'harbor': harbor,
 					'introduce': introduce,
-					'seat': 0,
 					'referrer': '선상24'
 				}
 
-				url = "http://127.0.0.1:8000/fishing/api/create/sunsang24/crawled_fishing_data/"
-				res = requests.post(url, data=data, files={'thumbnail': thumbnail})
-				if res.status_code == 200:
-					prev_uids.add(uid)
+				
+
+				url = "http://127.0.0.1:8000/fishing/create/sunsang24/crawled_fishing_data/"
+				try:
+					res = requests.post(url, params=data, files=thumbnail)
+					if res.status_code == 200:
+						prev_uids.add(uid)
+				except:
+					continue
 			
 			page += 1
 
@@ -94,12 +109,12 @@ class DanakkaCrawler:
 		sunsang24_url = "https://api.sunsang24.com"
 		session = requests.Session()
 
-		fishing_data = session.get(f"{danakka_url}/fishing/api/read/fishing_data/").json()
+		fishing_data = session.get(f"{danakka_url}/fishing/read/sunsang24/crawled_fishing_data/").json()
 
 		for fishing_info in fishing_data:
-			pk = fishing_info['pk']
-			uid = fishing_info['uid']
-			referrer = fishing_info['referrer']
+			pk = fishing_info['id']
+			uid = fishing_info['fishing_crawler']['uid']
+			referrer = fishing_info['fishing_crawler']['referrer']
 			display_business_name = fishing_info['display_business_name']
 
 			if referrer != '선상24':
@@ -128,8 +143,9 @@ class DanakkaCrawler:
 						"display_business_name": res['ship']['name'],
 						"maximum_seat": maximum_seat
 					}
+					print(data)
 
-					session.post(f"{danakka_url}/fishing/api/create/sunsang24/crawled_species_data/", data=data).raise_for_status()
+					session.post(f"{danakka_url}/fishing/create/crawled_species_data/", json=data).raise_for_status()
 
 				# Get booked seat info
 				booked_done = 0
@@ -157,7 +173,7 @@ class DanakkaCrawler:
 						'booked_seat': booked_seat,
 					}
 
-					session.post(f'{danakka_url}/fishing/api/create/sunsang24/crawled_booked_data/', data=data).raise_for_status()
+					session.post(f'{danakka_url}/fishing/create/crawled_booked_data/', json=data).raise_for_status()
 
 
 if __name__ == "__main__":
