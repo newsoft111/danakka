@@ -53,15 +53,18 @@ async def read_all_fishing(
     # 결과에 available_seats 추가하기
     query = query.add_column(available_seats.label('available_seats'))
 
+    total_count = query.count()
+
     # FishingMonth 모델에 대한 limit()과 offset() 함수 적용
     fishing_objs = query.limit(per_page).offset(offset).all()
 
     return {
-    "booking_objs": [
-        {"fishing_month": fishing_month, "available_seats": available_seats} 
-        for fishing_month, available_seats in fishing_objs
-    ]
-}
+        "booking_objs": [
+            {"fishing_month": fishing_month, "available_seats": available_seats} 
+            for fishing_month, available_seats in fishing_objs
+        ],
+        "last_page":total_count // per_page + 1
+    }
 
 
 
