@@ -83,21 +83,30 @@ class Fishing(models.Model):
 		#managed = False
 
 
-class FishingSpeciesMonth(models.Model):
+class FishingMonth(models.Model):
 	fishing = models.ForeignKey(
 		Fishing,
 		on_delete=models.CASCADE
-	)
-	fishing_species_item = models.ForeignKey(
-		FishingSpeciesItem,
-		on_delete=models.CASCADE,
-		null=True
 	)
 	month = models.CharField(max_length=255) #202304 형식으로 들어감
 	maximum_seat = models.PositiveIntegerField()
 
 	class Meta:
-		db_table = 'fishing_species_month'
+		db_table = 'fishing_month'
+		#managed = False
+
+class FishingSpecies(models.Model):
+	fishing_month = models.ForeignKey(
+		FishingMonth,
+		on_delete=models.CASCADE
+	)
+	fishing_species_item = models.ForeignKey(
+		FishingSpeciesItem,
+		on_delete=models.CASCADE
+	)
+
+	class Meta:
+		db_table = 'fishing_species'
 		#managed = False
 
 

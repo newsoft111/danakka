@@ -24,9 +24,11 @@ def daterange(start_date, end_date):
 class DanakkaCrawler:
 	def __init__(self):
 		#self.driver = driver
+		self.danakka_url = "http://localhost:8000"
+		self.sunsang24_url = "https://api.sunsang24.com"
 
 		#선상24
-		self.sunsang24_check_fishing_data()
+		#self.sunsang24_check_fishing_data()
 		self.sunsang24_check_species_data()
 			
 
@@ -37,7 +39,7 @@ class DanakkaCrawler:
 		prev_uids = set()
 
 		while True:
-			url = f"https://api.sunsang24.com/ship/list?area=&fish=&page={page}&pay=&sdate={sdate}&type=general&use_time=&walkthrough="
+			url = f"{self.sunsang24_url}/ship/list?area=&fish=&page={page}&pay=&sdate={sdate}&type=general&use_time=&walkthrough="
 			res = requests.get(url).json()['list']
 			cnt_res = len(res) if res else 0
 
@@ -56,7 +58,7 @@ class DanakkaCrawler:
 				business_name = ship.get('name')
 				thumbnail_url = ship.get('image')
 
-				group_url = f"https://api.sunsang24.com/ship/group/{uid}"
+				group_url = f"{self.sunsang24_url}/ship/group/{uid}"
 				group_res = requests.get(group_url)
 				if group_res.status_code != 200:
 					continue
@@ -71,14 +73,15 @@ class DanakkaCrawler:
 
 				path = os.getcwd() + f'\\thumbnail\\' + thumbnail_url.split('/')[-1]
 
-				try:
-					with open(path, 'wb') as f:
-						f.write(requests.get(thumbnail_url).content)
+				
+				with open(path, 'wb') as f:
+					f.write(requests.get(thumbnail_url).content)
 
-					thumbnail = {"thumbnail":open(path, "rb")}
-				except Exception as e:
-					thumbnail = None
+				thumbnail = {"thumbnail":open(path, "rb")}
+			
 
+				if len(introduce) > 1000:
+					introduce = None
 
 				data = {
 					'display_business_name': str(business_name),
@@ -91,7 +94,7 @@ class DanakkaCrawler:
 
 				
 
-				url = "http://127.0.0.1:8000/fishing/create/sunsang24/crawled_fishing_data/"
+				url = f"{self.danakka_url}/fishing/create/sunsang24/crawled_fishing_data/"
 				try:
 					res = requests.post(url, params=data, files=thumbnail)
 					if res.status_code == 200:
@@ -105,11 +108,10 @@ class DanakkaCrawler:
 
 	#예약된거 확인 첫루프는 어종확인
 	def sunsang24_check_species_data(self):
-		danakka_url = "http://127.0.0.1:8000"
-		sunsang24_url = "https://api.sunsang24.com"
+		
 		session = requests.Session()
 
-		fishing_data = session.get(f"{danakka_url}/fishing/read/sunsang24/crawled_fishing_data/").json()
+		fishing_data = session.get(f"{self.danakka_url}/fishing/read/sunsang24/crawled_fishing_data/").json()
 
 		for fishing_info in fishing_data:
 			pk = fishing_info['id']
@@ -127,7 +129,7 @@ class DanakkaCrawler:
 
 			for month in months:
 				try:
-					res = session.get(f"{sunsang24_url}/ship/schedule_fleet_list/{uid}/{month}").json()[0]
+					res = session.get(f"{self.sunsang24_url}/ship/schedule_fleet_list/{uid}/{month}").json()[0]
 				except (IndexError, TypeError):
 					continue
 
@@ -145,7 +147,7 @@ class DanakkaCrawler:
 					}
 					print(data)
 
-					session.post(f"{danakka_url}/fishing/create/crawled_species_data/", json=data).raise_for_status()
+					session.post(f"{self.danakka_url}/fishing/create/crawled_species_data/", json=data).raise_for_status()
 
 				# Get booked seat info
 				booked_done = 0
@@ -173,7 +175,8 @@ class DanakkaCrawler:
 						'booked_seat': booked_seat,
 					}
 
-					session.post(f'{danakka_url}/fishing/create/crawled_booked_data/', json=data).raise_for_status()
+					session.post(f'{self.danakka_url}/fishing/create/crawled_booked_data/', json=data).raise_for_status()
+			
 
 
 if __name__ == "__main__":

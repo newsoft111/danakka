@@ -19,7 +19,17 @@ class FishingSpeciesItem(Base):
 	id = Column(Integer, primary_key=True, index=True)
 	name=Column(String(255))
 
-	fishing_species_month = relationship("FishingSpeciesMonth", back_populates="fishing_species_item")
+	fishing_species = relationship("FishingSpecies", back_populates="fishing_species_item")
+
+class FishingSpecies(Base):
+	__tablename__ = "fishing_species"
+
+	id = Column(Integer, primary_key=True, index=True)
+	fishing_month_id = Column(Integer, ForeignKey("fishing_month.id"))
+	fishing_species_item_id = Column(Integer, ForeignKey("fishing_species_item.id"))
+
+	fishing_month = relationship("FishingMonth", back_populates="fishing_species")
+	fishing_species_item = relationship("FishingSpeciesItem", back_populates="fishing_species")
 
 
 class FishingCrawler(Base):
@@ -60,22 +70,23 @@ class Fishing(Base):
 	fishing_type = relationship("FishingType", back_populates="fishing")
 	
 
-	fishing_species_month = relationship("FishingSpeciesMonth", back_populates="fishing")
+	fishing_month = relationship("FishingMonth", back_populates="fishing")
 	fishing_booking = relationship("FishingBooking", back_populates="fishing")
 
 
-class FishingSpeciesMonth(Base):
-	__tablename__ = "fishing_species_month"
+class FishingMonth(Base):
+	__tablename__ = "fishing_month"
 
 	id = Column(Integer, primary_key=True, index=True)
 	fishing_id = Column(Integer, ForeignKey("fishing.id"))
-	fishing_species_item_id = Column(Integer, ForeignKey("fishing_species_item.id"))
 	
 	month=Column(String(255))
 	maximum_seat=Column(Integer)
 
-	fishing = relationship("Fishing", back_populates="fishing_species_month")
-	fishing_species_item = relationship("FishingSpeciesItem", back_populates="fishing_species_month")
+	fishing = relationship("Fishing", back_populates="fishing_month")
+
+	fishing_species = relationship("FishingSpecies", back_populates="fishing_month")
+	
 
 
 

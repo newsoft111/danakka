@@ -1,24 +1,20 @@
 from fastapi import APIRouter, Depends, File, UploadFile
 from pydantic import BaseModel
-from database import engineconn
 from .. import models
 from sqlalchemy.orm import Session, joinedload, selectinload
 from typing import List
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
-from dateutil import rrule
+from db.connection import get_db
 import requests, random, time, re, os
 from sqlalchemy import text
 from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel
+from core.config import media_settings
 
 router = APIRouter()
 
 app_name = 'fishing'
-
-engine = engineconn()
-db = engine.sessionmaker()
 
 class CrawledFishingData(BaseModel):
 	display_business_name: str
@@ -32,7 +28,8 @@ class CrawledFishingData(BaseModel):
 @router.post(f"/{app_name}/create/sunsang24/crawled_fishing_data/")
 async def create_sunsang24_crawled_fishing_data(
 		crawled_data: CrawledFishingData = Depends(),
-		thumbnail: Optional[UploadFile] = File(None)
+		thumbnail: Optional[UploadFile] = File(None),
+		db: Session = Depends(get_db)
 	):
 	
 	#thumbnail = None
@@ -41,10 +38,15 @@ async def create_sunsang24_crawled_fishing_data(
 
 	if thumbnail is not None:
 		contents = await thumbnail.read()
-		thumbnail_path = os.getcwd() + f'\\images\\thumbnail\\' + thumbnail.filename
-		with open(thumbnail_path, mode="wb") as f:
+		currentTime = datetime.now().strftime("%Y%m%d%H%M")
+
+		thumbnail_path = os.path.join(media_settings.IMG_DIR,currentTime)
+
+		os.makedirs(thumbnail_path, exist_ok=True)
+
+		with open((f"{thumbnail_path}/{thumbnail.filename}"), mode="wb") as f:
 			f.write(contents)
-		fishing_dict['thumbnail'] = thumbnail_path
+		fishing_dict['thumbnail'] = f"{thumbnail_path}/{thumbnail.filename}"[1:]
 
 	
 	# FishingCrawler
@@ -96,7 +98,9 @@ async def create_sunsang24_crawled_fishing_data(
 
 
 @router.get(f"/{app_name}/read/sunsang24/crawled_fishing_data/")
-async def read_sunsang24_crawled_species_data():
+async def read_sunsang24_crawled_species_data(
+		db: Session = Depends(get_db)
+	):
 	example = db.query(models.Fishing).options(joinedload(models.Fishing.fishing_crawler)).all()
 	return example
 
@@ -109,7 +113,10 @@ class CrawledSpeciesData(BaseModel):
 	maximum_seat: int
 
 @router.post(f"/{app_name}/create/crawled_species_data/")
-async def create_species_data(crawled_data: CrawledSpeciesData):
+async def create_species_data(
+		crawled_data: CrawledSpeciesData,
+		db: Session = Depends(get_db)
+	):
 	fishing_dict = crawled_data.dict(exclude_unset=True)
 	pk = fishing_dict['pk']
 	species = fishing_dict['species']
@@ -117,7 +124,7 @@ async def create_species_data(crawled_data: CrawledSpeciesData):
 	display_business_name = fishing_dict['display_business_name']
 	maximum_seat = fishing_dict['maximum_seat']
 
-	fishing_obj = db.query(models.Fishing).options(selectinload(models.Fishing.fishing_species_month)).filter_by(id=pk, display_business_name=display_business_name).first()
+	fishing_obj = db.query(models.Fishing).filter_by(id=pk, display_business_name=display_business_name).first()
 	if fishing_obj:
 		if maximum_seat > fishing_obj.maximum_seat:
 			fishing_obj.maximum_seat = maximum_seat
@@ -129,6 +136,27 @@ async def create_species_data(crawled_data: CrawledSpeciesData):
 	species_items = {}
 
 	if species is not None:
+		# create or update SpeciesMonth
+		fishing_month_obj = db.query(models.FishingMonth).filter_by(fishing_id=pk, month=month).first()
+		if not fishing_month_obj:
+			fishing_month_obj = models.FishingMonth(
+				fishing=fishing_obj,
+				month=month,
+				maximum_seat=maximum_seat,
+			)
+			db.add(fishing_month_obj)
+
+		else:
+			if maximum_seat > fishing_month_obj.maximum_seat:
+				fishing_month_obj.maximum_seat = maximum_seat
+				
+
+		db.commit()
+		db.refresh(fishing_month_obj)
+		
+		db.query(models.FishingSpecies).filter_by(fishing_month_id=fishing_month_obj.id).delete()
+		db.commit()
+
 		for specie in species.split(','):
 			# fetch SpeciesItem
 			if specie not in species_items:
@@ -139,20 +167,15 @@ async def create_species_data(crawled_data: CrawledSpeciesData):
 					db.commit()
 				species_items[specie] = fishing_species_item_obj
 
-			# create or update SpeciesMonth
-			fishing_species_month_obj = next((sm for sm in fishing_obj.fishing_species_month if sm.month == month and sm.fishing_species_item == species_items[specie].id), None)
-			if not fishing_species_month_obj:
-				fishing_species_month_obj = models.FishingSpeciesMonth(
-					fishing=fishing_obj,
-					month=month,
-					fishing_species_item=species_items[specie],
-					maximum_seat=maximum_seat,
-				)
-				db.add(fishing_species_month_obj)
-			else:
-				if maximum_seat > fishing_species_month_obj.maximum_seat:
-					fishing_species_month_obj.maximum_seat = maximum_seat
-					db.commit()
+
+			
+			fishing_species_obj = models.FishingSpecies(
+				fishing_month=fishing_month_obj,
+				fishing_species_item=species_items[specie],
+			)
+			db.add(fishing_species_obj)
+			db.commit()
+
 
 		db.commit()
 		db.refresh(fishing_obj)
@@ -168,7 +191,10 @@ class CrawledBookedData(BaseModel):
 	booked_seat: int
 
 @router.post(f"/{app_name}/create/crawled_booked_data/")
-async def create_booked_data(crawled_data: CrawledBookedData):
+async def create_booked_data(
+		crawled_data: CrawledBookedData,
+		db: Session = Depends(get_db)
+	):
 	fishing_dict = crawled_data.dict(exclude_unset=True)
 	pk, date, display_business_name, booked_seat = (
         fishing_dict['pk'],
