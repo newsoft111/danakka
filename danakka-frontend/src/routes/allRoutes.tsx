@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
-import Booking from "../pages/Booking";
+import BookingFishingList from "../pages/Booking/Fishing/List";
+import BookingView from "../pages/Booking/View";
 //Sales
 //import Sales from "../pages/Sales";
 //Analytics
@@ -163,7 +164,11 @@ interface RouteProps {
 
 const userRoutes: Array<RouteProps> = [
   //dashboard
-  { path: "/booking/", exact: true, component: <Booking />},
+  { path: "/booking/live/", exact: true, component: <BookingFishingList />},
+  { path: "/booking/fishing/boat/", exact: true, component: <BookingFishingList />},
+  { path: "/booking/fishing/hosue/", exact: true, component: <BookingFishingList />},
+  { path: "/booking/fishing/experience/", exact: true, component: <BookingFishingList />},
+  { path: "/booking/:no/", exact: true, component: <BookingView />},
   //{ path: "/sales", component: <Sales /> },
   // { path: "/dashboards-analytics", component: <Analytics /> },
   // { path: "/calendar", component: <Calendar /> },
@@ -279,9 +284,9 @@ const userRoutes: Array<RouteProps> = [
   {
     path: "/",
     exact: true,
-    component: <Navigate to="/booking/" />,
+    component: <Navigate to="/booking/live/" />,
   },
-  { path: "*", component: <Navigate to="/booking/" /> },
+  { path: "*", component: <Navigate to="/booking/live/" /> },
 ];
 
 const authRoutes: Array<RouteProps> = [

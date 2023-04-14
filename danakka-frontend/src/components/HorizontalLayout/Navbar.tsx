@@ -44,15 +44,24 @@ const Navbar = (props: any) => {
     var matchingMenuItem = null;
     var ul: any = document.getElementById("navigation");
     var items: any = ul.getElementsByTagName("a");
+
     for (var i = 0; i < items.length; ++i) {
-      if (pathName === items[i].pathname) {
-        matchingMenuItem = items[i];
-        break;
-      }
+		const item = items[i];
+		const parent = item.parentElement;
+		const isActive = pathName === items[i].pathname;
+
+		item.classList.toggle("active", isActive);
+		if (parent) {
+			parent.classList.toggle("active", isActive);
+		}
+    //   if (pathName === items[i].pathname) {
+    //     matchingMenuItem = items[i];
+    //     break;
+    //   }
     }
-    if (matchingMenuItem) {
-      activateParentDropdown(matchingMenuItem);
-    }
+    // if (matchingMenuItem) {
+    //   activateParentDropdown(matchingMenuItem);
+    // }
   });
 
   function activateParentDropdown(item: any) {
@@ -98,10 +107,54 @@ const Navbar = (props: any) => {
                 <li className="nav-item dropdown">
                   <Link
                     className="nav-link"
+                    to="/booking/live/"
+                  >
+                    <Icon name="monitor" />
+                    <span>{props.t("LiveBooking")}</span>
+                    <div className="arrow-none"></div>
+                  </Link>
+                </li>
+
+				<li className="nav-item dropdown">
+                  <Link
+                    className="nav-link"
+                    to="/booking/fishing/boat/"
+                  >
+                    <Icon name="package" />
+                    <span>{props.t("BoatFishing")}</span>
+                    <div className="arrow-none"></div>
+                  </Link>
+                </li>
+
+				<li className="nav-item dropdown">
+                  <Link
+                    className="nav-link"
+                    to="/booking/fishing/hosue/"
+                  >
+                    <Icon name="file" />
+                    <span>{props.t("HouseFishing")}</span>
+                    <div className="arrow-none"></div>
+                  </Link>
+                </li>
+
+				<li className="nav-item dropdown">
+                  <Link
+                    className="nav-link"
+                    to="/booking/fishing/experience/"
+                  >
+                    <Icon name="grid" />
+                    <span>{props.t("ExperienceFishing")}</span>
+                    <div className="arrow-none"></div>
+                  </Link>
+                </li>
+
+				<li className="nav-item dropdown">
+                  <Link
+                    className="nav-link"
                     to="/booking/"
                   >
-                    <Icon name="monitor" />{" "}
-                    <span>{props.t("Booking")}</span>{" "}
+                    <Icon name="layers" />
+                    <span>{props.t("출조버스")}</span>
                     <div className="arrow-none"></div>
                   </Link>
                 </li>

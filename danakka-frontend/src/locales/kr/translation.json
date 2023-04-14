@@ -1,5 +1,8 @@
 {
-	"Booking" : "실시간예약",
+	"LiveBooking" : "실시간예약",
+	"BoatFishing" : "선상낚시",
+	"HouseFishing" : "좌대낚시",
+	"ExperienceFishing" : "체험낚시",
 	"Dashboards" : "대시보드",
 	"Sales" : "Sales",
 	"Analytics":"Analytics",

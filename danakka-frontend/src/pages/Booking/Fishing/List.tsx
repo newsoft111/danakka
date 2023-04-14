@@ -45,49 +45,53 @@ type BookingObj = {
 	available_seats: number;
 };
 
-const Booking = () => {
+const BookingList = () => {
 	const [currentPage, setCurrentPage] = useState<number>(1);
+	const [lastPage, setLastPage] = useState<number>(1); // add this line
 	const [bookings, setBookings] = useState<BookingObj[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
   
 	useEffect(() => {
-	  const fetchData = async () => {
-		setIsLoading(true);
-  
-		try {
-		  const response = await fetch(`/api/booking/?page=${currentPage}`, {
-			headers: {
-			  Accept: "application/json",
-			  "Content-Type": "application/json",
-			},
-		  });
-  
-		  const data = await response.json();
-		  setBookings((prevBookings) => [...prevBookings, ...data.booking_objs]);
-		  setIsLoading(false);
-		} catch (error) {
-		  console.error(error);
-		}
-	  };
-  
-	  fetchData();
-	}, [currentPage]);
+		const fetchData = async () => {
+		  setIsLoading(true);
+	  
+		  try {
+			const response = await fetch(`/api/booking/?page=${currentPage}`, {
+			  headers: {
+				Accept: "application/json",
+				"Content-Type": "application/json",
+			  },
+			});
+	  
+			const data = await response.json();
+			setBookings((prevBookings) => [...prevBookings, ...data.booking_objs]);
+			setLastPage(data.last_page); // add this line
+			setIsLoading(false);
+		  } catch (error) {
+			console.error(error);
+		  }
+		};
+	  
+		fetchData();
+	  }, [currentPage]);
   
 	const observer = useRef<IntersectionObserver | null>(null);
 	const lastBookingRef = useCallback(
-      (node: HTMLDivElement | null) => {
-		if (isLoading) return;
-		if (observer.current) observer.current.disconnect();
-  
-		observer.current = new IntersectionObserver(([entry]) => {
-		  if (entry.isIntersecting) {
-			setCurrentPage((prevPage) => prevPage + 1);
-		  }
-		});
-  
-		if (node) observer.current.observe(node);
-	  },
-	  [isLoading]
+		(node: HTMLDivElement | null) => {
+		  if (isLoading) return;
+		  if (observer.current) observer.current.disconnect();
+	  
+		  observer.current = new IntersectionObserver(([entry]) => {
+			if (entry.isIntersecting) {
+			  if (currentPage < lastPage) { // add this condition
+				setCurrentPage((prevPage) => prevPage + 1);
+			  }
+			}
+		  });
+	  
+		  if (node) observer.current.observe(node);
+		},
+		[isLoading, currentPage, lastPage]
 	);
   
 	return (
@@ -98,27 +102,29 @@ const Booking = () => {
 			<Row>
 			{bookings.map((booking, index) => (
 				<Col md={6} lg={4} xl={3} key={booking.fishing_month.fishing.id}>
-					<Link to="#">
-					<Card>
+					<Link to={`/booking/${booking.fishing_month.fishing.id}/`}>
+						<Card>
 						<img
-						className="card-img-top img-fluid"
-						src={booking.fishing_month.fishing.thumbnail}
-						alt=""
+							className="card-img-top img-fluid"
+							src={booking.fishing_month.fishing.thumbnail}
+							alt=""
 						/>
 						<CardBody>
-						<h4 className="card-title mb-0">
+							<h4 className="card-title mb-0">
 							[{booking.fishing_month.fishing.harbor.name}] {booking.fishing_month.fishing.display_business_name}
-						</h4>
+							</h4>
 						</CardBody>
 						<ul className="list-group list-group-flush">
-						<li className="list-group-item">남은자리 : {booking.available_seats}명</li>
-						{bookings.length === index + 1 && (
-							<div ref={lastBookingRef}></div>
-						)}
+							<li className="list-group-item">남은자리 : {booking.available_seats}명</li>
 						</ul>
-					</Card>
+						</Card>
 					</Link>
+					{bookings.length === index + 1 && (
+						<div ref={lastBookingRef}></div>
+					)}
+
 				</Col>
+				
 				))}
 			</Row>
 		  </Container>
@@ -127,6 +133,4 @@ const Booking = () => {
 	);
   };
   
-  export default Booking;
-  
-
+  export default BookingList;
