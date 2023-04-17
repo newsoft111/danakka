@@ -45,7 +45,7 @@ type BookingObj = {
 	available_seats: number;
 };
 
-const BookingList = () => {
+const BookingFishingList = () => {
 	const [currentPage, setCurrentPage] = useState<number>(1);
 	const [lastPage, setLastPage] = useState<number>(1); // add this line
 	const [bookings, setBookings] = useState<BookingObj[]>([]);
@@ -73,7 +73,7 @@ const BookingList = () => {
 		};
 	  
 		fetchData();
-	  }, [currentPage]);
+	}, [currentPage]);
   
 	const observer = useRef<IntersectionObserver | null>(null);
 	const lastBookingRef = useCallback(
@@ -133,4 +133,4 @@ const BookingList = () => {
 	);
   };
   
-  export default BookingList;
+  export default BookingFishingList;

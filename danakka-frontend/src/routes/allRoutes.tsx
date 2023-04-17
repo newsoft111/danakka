@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import BookingFishingList from "../pages/Booking/Fishing/List";
-import BookingView from "../pages/Booking/View";
+import BookingView from "../pages/Booking/Fishing/View";
 //Sales
 //import Sales from "../pages/Sales";
 //Analytics
