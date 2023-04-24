@@ -7,6 +7,8 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timedelta, date
+from dateutil.relativedelta import relativedelta
+
 router = APIRouter()
 
 app_name = 'fishing'
@@ -77,11 +79,14 @@ async def read_all_fishing(
 @router.get(f"/{app_name}/{{fishing_pk}}/")
 async def read_fishing(
         fishing_pk: int,
+		year: int = int(today.year),
+		month: int = int(today.month),
         db: Session = Depends(get_db)
     ):
 
-	start_date = date(2013, 1, 1)
-	end_date = date(2015, 6, 2)
+	start_date = date(year, month, 1)
+	end_date = start_date + relativedelta(months=1)
+
 	for single_date in daterange(start_date, end_date):
 		print(single_date.strftime("%Y-%m-%d"))
 	fishing = db.query(models.Fishing).filter(models.Fishing.id == fishing_pk).first()
