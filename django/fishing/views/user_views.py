@@ -86,7 +86,7 @@ class UserFishingLV(ListView):
 			filter_name = self.fishing_type_dict[current_url_name]['filter']
 			qs = qs.filter(fishing_type__name=filter_name)
 		else:
-			qs = qs.filter(fishingspeciesmonth__month=species_month_date)
+			qs = qs.filter(fishingmonth__month=species_month_date)
 
 			booking_sum_subquery = FishingBooking.objects.filter(date=search_date, fishing_id=OuterRef('pk')).values('fishing_id').annotate(
 				total_person=Sum('person')).values('fishing_id', 'total_person')
@@ -95,7 +95,7 @@ class UserFishingLV(ListView):
 
 			qs = qs.annotate(
 				available_seats=ExpressionWrapper(
-					F('fishingspeciesmonth__maximum_seat') - F('booking_sum'),
+					F('fishingmonth__maximum_seat') - F('booking_sum'),
 					output_field=models.IntegerField()
 				)
 			).filter(available_seats__gt=0)
