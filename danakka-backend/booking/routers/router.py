@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from .. import models
-from sqlalchemy.orm import Session, joinedload, subqueryload, outerjoin
+from sqlalchemy.orm import Session, joinedload, subqueryload, outerjoin, selectinload
 from db.connection import get_db
 from sqlalchemy import text, func, select
 from fastapi.encoders import jsonable_encoder
@@ -23,26 +23,24 @@ def daterange(start_date, end_date):
 @router.get(f"/{app_name}/list/")
 async def read_all_fishing(
 		page: int = 1,
-		year: int = int(today.year),
-		month: int = int(today.month),
-		day: int = int(today.day),
+		year: str = str(today.year),
+		month: str = str(today.month),
+		day: str = str(today.day),
 		display_business_name: Optional[str] = None,
 		fishing_type: Optional[str] = None,
 		db: Session = Depends(get_db)
 	):
-
 	per_page = 12
 	offset = (page - 1) * per_page
 
-	search_date = date(year, month, day)
-	species_month_date = str(year) + str(month).zfill(2)
+	search_date = datetime.strptime(year + month.zfill(2) + day, '%Y%m%d').date()
+	species_month_date = year + month.zfill(2)
 
 	# FishingMonth 모델에 대한 쿼리 생성
 	query = db.query(models.FishingMonth)
 
 	# 월(month) 필드를 species_month_date로 필터링하고, FishingMonth.fishing에 대한 join 로드를 설정
 	query = query.filter_by(month=species_month_date).options(joinedload(models.FishingMonth.fishing).joinedload(models.Fishing.harbor))
-
 
 	# FishingBooking 모델에 대한 서브쿼리 생성
 	subquery = db.query(func.sum(models.FishingBooking.person))
@@ -55,10 +53,10 @@ async def read_all_fishing(
 	subquery = subquery.correlate(models.FishingMonth)
 
 	# 예약 가능한 좌석 수 구하기
-	available_seats = models.FishingMonth.maximum_seat - subquery.scalar_subquery()
+	available_seats = models.FishingMonth.maximum_seat - func.coalesce(subquery.scalar_subquery(), 0)
 
 	# FishingMonth 모델에 대한 예약 가능한 좌석 수 필터링
-	query = query.filter(models.FishingMonth.maximum_seat - subquery.scalar_subquery() > 0)
+	query = query.filter(models.FishingMonth.maximum_seat - func.coalesce(subquery.scalar_subquery(), 0) > 0)
 	# 결과에 available_seats 추가하기
 	query = query.add_column(available_seats.label('available_seats'))
 
@@ -79,17 +77,55 @@ async def read_all_fishing(
 @router.get(f"/{app_name}/{{fishing_pk}}/")
 async def read_fishing(
         fishing_pk: int,
-		year: int = int(today.year),
-		month: int = int(today.month),
+        year: int = int(today.year),
+        month: int = int(today.month),
         db: Session = Depends(get_db)
     ):
-
 	start_date = date(year, month, 1)
 	end_date = start_date + relativedelta(months=1)
 
+	fishing_month_obj = db.query(models.FishingMonth).filter(
+		models.FishingMonth.fishing_id == fishing_pk,
+		models.FishingMonth.month == f"{year}{month:02d}"
+	).options(
+		selectinload(models.FishingMonth.fishing_species)
+			.selectinload(models.FishingSpecies.fishing_species_item)
+	).first()
+
+	maximum_seat = fishing_month_obj.maximum_seat
+	species_item_name = fishing_month_obj.fishing_species[0].fishing_species_item.name
+
+	fishing_booking_objs = []
+
+	booking_query = db.query(
+		models.FishingBooking.date,
+		func.sum(models.FishingBooking.person)
+	).filter(
+		models.FishingBooking.fishing_id == fishing_pk,
+		models.FishingBooking.date >= start_date,
+		models.FishingBooking.date < end_date
+	).group_by(models.FishingBooking.date)
+
+
+	bookings = {str(booking_date): {
+            "total_person": total_person,
+            "maximum_seat": maximum_seat,
+            "available_seats": maximum_seat - total_person
+        } for booking_date, total_person in booking_query}
+
 	for single_date in daterange(start_date, end_date):
-		print(single_date.strftime("%Y-%m-%d"))
-	fishing = db.query(models.Fishing).filter(models.Fishing.id == fishing_pk).first()
-	if not fishing:
-		raise HTTPException(status_code=404, detail="Fishing item not found")
-	return fishing
+		if today <= single_date:
+			single_date_str = single_date.strftime("%Y-%m-%d")
+			booking_data = bookings.get(single_date_str, None)
+			if booking_data is None:
+				booking_data = {"total_person":0, "maximum_seat":maximum_seat, "available_seats":maximum_seat}
+			fishing_booking_objs.append({single_date_str: booking_data})
+
+
+	fishing_obj = db.query(models.Fishing).filter(models.Fishing.id == fishing_pk).first()
+	fishing_obj.species_item_name = species_item_name
+
+	return {
+		"booking_objs": fishing_booking_objs,
+		"fishing_objs": fishing_obj
+	}

@@ -56,7 +56,7 @@ const BookingFishingList = () => {
 		  setIsLoading(true);
 	  
 		  try {
-			const response = await fetch(`/api/booking/?page=${currentPage}`, {
+			const response = await fetch(`/fishing/list/?page=${currentPage}`, {
 			  headers: {
 				Accept: "application/json",
 				"Content-Type": "application/json",
