@@ -25,7 +25,7 @@ class CrawledFishingData(BaseModel):
 	referrer: str
 
 
-@router.post(f"/{app_name}/create/sunsang24/crawled_fishing_data/")
+@router.post(f"/{app_name}/crawler/create/sunsang24/fishing_data/")
 async def create_sunsang24_crawled_fishing_data(
 		crawled_data: CrawledFishingData = Depends(),
 		thumbnail: Optional[UploadFile] = File(None),
@@ -97,7 +97,7 @@ async def create_sunsang24_crawled_fishing_data(
 	return fishing
 
 
-@router.get(f"/{app_name}/read/sunsang24/crawled_fishing_data/")
+@router.get(f"/{app_name}/crawler/read/sunsang24/fishing_data/")
 async def read_sunsang24_crawled_species_data(
 		db: Session = Depends(get_db)
 	):
@@ -112,7 +112,7 @@ class CrawledSpeciesData(BaseModel):
 	display_business_name: str
 	maximum_seat: int
 
-@router.post(f"/{app_name}/create/crawled_species_data/")
+@router.post(f"/{app_name}/crawler/create/species_data/")
 async def create_species_data(
 		crawled_data: CrawledSpeciesData,
 		db: Session = Depends(get_db)
@@ -190,7 +190,7 @@ class CrawledBookedData(BaseModel):
 	display_business_name: str
 	booked_seat: int
 
-@router.post(f"/{app_name}/create/crawled_booked_data/")
+@router.post(f"/{app_name}/crawler/create/booked_data/")
 async def create_booked_data(
 		crawled_data: CrawledBookedData,
 		db: Session = Depends(get_db)

@@ -24,7 +24,7 @@ def daterange(start_date, end_date):
 class DanakkaCrawler:
 	def __init__(self):
 		#self.driver = driver
-		self.danakka_url = "http://localhost:8000"
+		self.danakka_url = "http://localhost:8000/fishing/crawler"
 		self.sunsang24_url = "https://api.sunsang24.com"
 
 		#선상24
@@ -94,7 +94,7 @@ class DanakkaCrawler:
 
 				
 
-				url = f"{self.danakka_url}/fishing/create/sunsang24/crawled_fishing_data/"
+				url = f"{self.danakka_url}/create/sunsang24/fishing_data/"
 				try:
 					res = requests.post(url, params=data, files=thumbnail)
 					if res.status_code == 200:
@@ -111,7 +111,7 @@ class DanakkaCrawler:
 		
 		session = requests.Session()
 
-		fishing_data = session.get(f"{self.danakka_url}/fishing/read/sunsang24/crawled_fishing_data/").json()
+		fishing_data = session.get(f"{self.danakka_url}/read/sunsang24/fishing_data/").json()
 
 		for fishing_info in fishing_data:
 			pk = fishing_info['id']
@@ -147,7 +147,7 @@ class DanakkaCrawler:
 					}
 					print(data)
 
-					session.post(f"{self.danakka_url}/fishing/create/crawled_species_data/", json=data).raise_for_status()
+					session.post(f"{self.danakka_url}/create/species_data/", json=data).raise_for_status()
 
 				# Get booked seat info
 				booked_done = 0
@@ -175,7 +175,7 @@ class DanakkaCrawler:
 						'booked_seat': booked_seat,
 					}
 
-					session.post(f'{self.danakka_url}/fishing/create/crawled_booked_data/', json=data).raise_for_status()
+					session.post(f'{self.danakka_url}/create/booked_data/', json=data).raise_for_status()
 			
 
 
