@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Link } from "react-router-dom";
+
 import {
 	Card,
 	CardBody,
@@ -11,9 +11,58 @@ import {
 	Table
 } from "reactstrap";
 
-
+interface FishingObj {
+	id: number;
+	harbor_id: number;
+	fishing_type_id: number;
+	fishing_crawler_id: number;
+	display_business_name: string;
+	site_url: string | null;
+	introduce: string;
+	thumbnail: string;
+	maximum_seat: number;
+	price: number | null;
+	business_address: string;
+	is_deleted: boolean;
+	needs_check: boolean;
+	reason_for_deletion: string | null;
+	created_at: string;
+	updated_at: string;
+	harbor: {
+		sea: any | null;
+		id: number;
+		address: string | null;
+		name: string;
+	};
+	species_item_name: string;
+}
+  
+interface Availability {
+	  total_person: number;
+	  maximum_seat: number;
+	  available_seats: number;
+	  date: string;
+}
+  
+interface FishingData {
+	fishing_objs: FishingObj;
+	booking_objs: Availability[];
+}
 
 const BookingFishingView = () => {
+	
+	const [fishingData, setFishingData] = useState<FishingData | null>(null);
+	
+	useEffect(() => {
+		async function fetchData() {
+			const response = await fetch('/fishing/2/');
+			const data = await response.json();
+			setFishingData(data);
+		}
+	
+		fetchData();
+	}, []);
+		
 	const months = [
 		{ month: 1, year: 2024, label: '1월' },
 		{ month: 2, year: 2024, label: '2월' },
@@ -44,7 +93,7 @@ const BookingFishingView = () => {
 								<img className="img-fluid rounded-3" src="/media/media/images/202304120956/39fb944004eb5909aa3be2d748cdc07d_mini.jpg" alt="싹쓰리호" />
 							</Col>
 							<Col lg="6" className="mt-3 mt-lg-0">
-								<h2 className="m-0 text-break">[흥환1리방파제] 싹쓰리호</h2>
+								<h2 className="m-0 text-break">[{fishingData && fishingData.fishing_objs.harbor.name}] {fishingData && fishingData.fishing_objs.display_business_name}</h2>
 								<Button type="button" color="primary" className="w-100 mb-1" href="None/ship/schedule_fleet/202304">홈페이지 예약</Button>
 								<Button type="button" color="light" className="w-100 mb-1" href="None/ship/schedule_fleet/202304" data-bs-toggle="modal" data-bs-target="#sendMessageModal">문의하기</Button>
 							</Col>
@@ -70,11 +119,11 @@ const BookingFishingView = () => {
 							))}
 							</ButtonGroup>
 							
-
-							<Table bordered className="mb-4" id="fishing-reserve-table">
+							{fishingData && fishingData.booking_objs.map((booking) => (
+							<Table bordered className="mb-4" id="fishing-reserve-table" key={booking.date}>
 								<tbody>
 									<tr className="fw-bold">
-									<td colSpan={3}>2023년 04월 17일 월요일, 3물</td>
+									<td colSpan={3}>{booking.date}</td>
 									</tr>
 									<tr className="text-center fw-bold">
 									<td>선박명</td>
@@ -84,7 +133,7 @@ const BookingFishingView = () => {
 
 									<tr>
 									<td className="text-center fw-bold align-middle">
-										<dt>싹쓰리호</dt>
+										<dt>{fishingData && fishingData.fishing_objs.display_business_name}</dt>
 										<dd>
 										<a href="None/ship/schedule_fleet/202304" className="btn btn-info">
 											예약하기
@@ -92,59 +141,18 @@ const BookingFishingView = () => {
 										</dd>
 									</td>
 									<td>
-										<dt>공지사항 :</dt>
-										<dd>
-										<span
-											style={{
-											color: 'rgb(34, 34, 34)',
-											fontFamily:
-												'-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", NotoColorEmoji, "Segoe UI Symbol", "Android Emoji", EmojiSymbols',
-											fontSize: '14px',
-											whiteSpace: 'pre-wrap',
-											backgroundColor: 'rgb(255, 255, 255)',
-											}}
-										>
-											오후 갑오징어{' '}
-										</span>
-										<br
-											style={{
-											boxSizing: 'border-box',
-											color: 'rgb(34, 34, 34)',
-											fontFamily:
-												'-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", NotoColorEmoji, "Segoe UI Symbol", "Android Emoji", EmojiSymbols',
-											fontSize: '14px',
-											whiteSpace: 'pre-wrap',
-											backgroundColor: 'rgb(255, 255, 255)',
-											}}
-										/>
-										<br
-											style={{
-											boxSizing: 'border-box',
-											color: 'rgb(34, 34, 34)',
-											fontFamily:
-												'-apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", NotoColorEmoji, "Segoe UI Symbol", "Android Emoji", EmojiSymbols',
-											fontSize: '14px',
-											whiteSpace: 'pre-wrap',
-											backgroundColor: 'rgb(255, 255, 255)',
-											}}
-										/>
-										<br />
-										</dd>
-
-										<dt>운항시간 :</dt>
-										<dd>14:00:00~19:00:00</dd>
-
 										<dt>대상어종 :</dt>
-										<dd>갑오징어</dd>
+										<dd>{fishingData && fishingData.fishing_objs.species_item_name}</dd>
 									</td>
 									<td className="text-center fw-bold align-middle">
 										<h3 className="mb-0">
-										<span className="badge bg-primary">20명</span>
+										<span className="badge bg-primary">{booking.available_seats}명</span>
 										</h3>
 									</td>
 									</tr>
 								</tbody>
 							</Table>
+							))}
 						</CardBody>
 						
 					</Card>

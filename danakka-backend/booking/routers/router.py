@@ -89,11 +89,20 @@ async def read_fishing(
 		models.FishingMonth.month == f"{year}{month:02d}"
 	).options(
 		selectinload(models.FishingMonth.fishing_species)
-			.selectinload(models.FishingSpecies.fishing_species_item)
+		.selectinload(models.FishingSpecies.fishing_species_item)
 	).first()
 
+
+	if not fishing_month_obj:
+		return {"error": "Fishing month object not found"}
+	print(fishing_month_obj.fishing_species)
 	maximum_seat = fishing_month_obj.maximum_seat
-	species_item_name = fishing_month_obj.fishing_species[0].fishing_species_item.name
+
+	fishing_species_list = []
+	for fishing_species in fishing_month_obj.fishing_species:
+		fishing_species_list.append(fishing_species.fishing_species_item.name)
+
+	species_item_name = ','.join(fishing_species_list)
 
 	fishing_booking_objs = []
 
@@ -108,21 +117,24 @@ async def read_fishing(
 
 
 	bookings = {str(booking_date): {
-            "total_person": total_person,
-            "maximum_seat": maximum_seat,
-            "available_seats": maximum_seat - total_person
-        } for booking_date, total_person in booking_query}
+			"total_person": total_person,
+			"maximum_seat": maximum_seat,
+			"available_seats": maximum_seat - total_person
+		} for booking_date, total_person in booking_query}
+
 
 	for single_date in daterange(start_date, end_date):
 		if today <= single_date:
 			single_date_str = single_date.strftime("%Y-%m-%d")
 			booking_data = bookings.get(single_date_str, None)
 			if booking_data is None:
-				booking_data = {"total_person":0, "maximum_seat":maximum_seat, "available_seats":maximum_seat}
-			fishing_booking_objs.append({single_date_str: booking_data})
+				booking_data = {"total_person":0, "maximum_seat":maximum_seat, "available_seats":maximum_seat,"date": single_date_str}
+			fishing_booking_objs.append(booking_data)
 
 
-	fishing_obj = db.query(models.Fishing).filter(models.Fishing.id == fishing_pk).first()
+	fishing_obj = db.query(models.Fishing).filter(models.Fishing.id == fishing_pk).options(
+		selectinload(models.Fishing.harbor)
+	).first()
 	fishing_obj.species_item_name = species_item_name
 
 	return {

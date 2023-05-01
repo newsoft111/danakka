@@ -132,6 +132,7 @@ class DanakkaCrawler:
 					res = session.get(f"{self.sunsang24_url}/ship/schedule_fleet_list/{uid}/{month}").json()[0]
 				except (IndexError, TypeError):
 					continue
+				print(f"{self.sunsang24_url}/ship/schedule_fleet_list/{uid}/{month}")
 
 				# Get species info
 				if display_business_name == res['ship']['name']:

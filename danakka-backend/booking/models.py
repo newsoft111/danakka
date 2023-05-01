@@ -80,6 +80,7 @@ class FishingMonth(Base):
 	id = Column(Integer, primary_key=True, index=True)
 	fishing_id = Column(Integer, ForeignKey("fishing.id"))
 	
+	
 	month=Column(String(255))
 	maximum_seat=Column(Integer)
 
