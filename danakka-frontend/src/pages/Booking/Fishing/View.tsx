@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useParams } from "react-router-dom";
 
 import {
 	Card,
@@ -52,10 +53,12 @@ interface FishingData {
 const BookingFishingView = () => {
 	
 	const [fishingData, setFishingData] = useState<FishingData | null>(null);
-	
+
+	const { no }: { no: number } = useParams();
+
 	useEffect(() => {
 		async function fetchData() {
-			const response = await fetch('/fishing/2/');
+			const response = await fetch(`/fishing/${no}/`);
 			const data = await response.json();
 			setFishingData(data);
 		}
