@@ -122,8 +122,8 @@ const BookingFishingView = () => {
 							))}
 							</ButtonGroup>
 							
-							{fishingData && fishingData.booking_objs.map((booking) => (
-							<Table bordered className="mb-4" id="fishing-reserve-table" key={booking.date}>
+							{fishingData && fishingData.booking_objs.map((booking, index) => (
+							<Table bordered className="mb-4" id="fishing-reserve-table" key={index}>
 								<tbody>
 									<tr className="fw-bold">
 									<td colSpan={3}>{booking.date}</td>
