@@ -66,20 +66,21 @@ const BookingFishingView = () => {
 		fetchData();
 	}, []);
 		
-	const months = [
-		{ month: 1, year: 2024, label: '1월' },
-		{ month: 2, year: 2024, label: '2월' },
-		{ month: 3, year: 2024, label: '3월' },
-		{ month: 4, year: 2023, label: '4월' },
-		{ month: 5, year: 2023, label: '5월' },
-		{ month: 6, year: 2023, label: '6월' },
-		{ month: 7, year: 2023, label: '7월' },
-		{ month: 8, year: 2023, label: '8월' },
-		{ month: 9, year: 2023, label: '9월' },
-		{ month: 10, year: 2023, label: '10월' },
-		{ month: 11, year: 2023, label: '11월' },
-		{ month: 12, year: 2023, label: '12월' },
-	];
+	const currentDate = new Date();
+	const currentYear = currentDate.getFullYear();
+	const currentMonth = currentDate.getMonth() + 1; // getMonth()는 0부터 시작하므로 1을 더해줍니다.
+
+	const months = [];
+
+	for (let i = 0; i < 12; i++) {
+		const month = (currentMonth + i) % 12 || 12; // 12를 넘어가면 1로 보정
+		const year = currentYear + Math.floor((currentMonth + i - 1) / 12);
+		const label = `${month}월`;
+	  
+		months.push({ month, year, label });
+	}
+
+	console.log(months);
 
 	return (
 	  <React.Fragment>
