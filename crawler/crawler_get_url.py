@@ -37,7 +37,7 @@ class DanakkaCrawler:
 			site_url = res['site_url']
 			business_address = res['business_address']
 			if site_url is None:
-				self.driver.get(f"https://www.google.com/search?q={display_business_name} {business_address}")
+				self.driver.get(f"https://www.google.com/search?q={business_name} {business_address}")
 
 				if self.driver.find_elements(By.CSS_SELECTOR,"iframe[name^='a-'][src^='https://www.google.com/recaptcha/api2/anchor?']"):
 					count = 1
@@ -68,12 +68,11 @@ class DanakkaCrawler:
 
 					if not "www.sunsang24.com" in link and "sunsang24.com" in link:
 						data = {
-							"site_url" : link,
 							"pk" : pk,
-							
+							"site_url" : link,
 						}
-
-						res = requests.post(self.danakka_url+'/fishing/crawler/update/site_url/', data=data)
+						print(data)
+						res = requests.post(self.danakka_url+'/fishing/crawler/update/site_url/', json=data)
 						res.raise_for_status() # 문제시 프로그램 종료
 						res = res.json()
 						break
