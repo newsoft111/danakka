@@ -232,3 +232,35 @@ async def create_booked_data(
 
 
 	return {'result': '200'}
+
+
+
+class CrawledBookedData(BaseModel):
+	pk: int
+	site_url: str
+
+@router.post(f"/{app_name}/crawler/update/site_url/")
+async def update_site_url(
+		crawled_data: CrawledBookedData,
+		db: Session = Depends(get_db)
+	):
+	fishing_dict = crawled_data.dict(exclude_unset=True)
+	pk, site_url = (
+        fishing_dict['pk'],
+		fishing_dict['site_url']
+	)
+
+	fishing_obj = db.query(models.Fishing).filter(
+		models.Fishing.id == pk
+	).first()
+
+	if not fishing_obj:
+		return {'result': '200'}		
+		
+	fishing_obj.site_url = site_url
+	db.commit()
+	db.refresh(fishing_obj)
+
+
+
+	return {'result': '200'}
