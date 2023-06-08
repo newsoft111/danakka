@@ -24,7 +24,7 @@ def daterange(start_date, end_date):
 class DanakkaCrawler:
 	def __init__(self):
 		#self.driver = driver
-		self.danakka_url = "http://localhost:8000/fishing/crawler"
+		self.danakka_url = "http://newsoft.kr:8500/fishing/crawler"
 		self.sunsang24_url = "https://api.sunsang24.com"
 
 		#선상24
