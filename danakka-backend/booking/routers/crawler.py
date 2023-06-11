@@ -261,6 +261,4 @@ async def update_site_url(
 	db.commit()
 	db.refresh(fishing_obj)
 
-
-
 	return {'result': '200'}
