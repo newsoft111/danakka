@@ -34,7 +34,6 @@ const NotificationDropdown = (props: any) => {
           id="page-header-notifications-dropdown"
         >
           <Icon name="bell" className="icon-sm" />
-          <span className="noti-dot bg-danger"></span>
         </DropdownToggle>
 
         <DropdownMenu className="dropdown-menu-lg dropdown-menu-end p-0" dir="left">

@@ -81,36 +81,17 @@ const Header = (props: any) => {
         </div>
 
         <div className="d-flex">
-          <div className="dropdown d-inline-block">
+			<NotificationDropdown />
 
-            <button
-              type="button"
-              className="btn header-item"
-              id="page-header-search-dropdown"
-              onClick={() => setSearch(!isSearch)}
-            >
-              <Icon name="search" className="icon-sm" />
-            </button>
-            <div
-              className={
-                isSearch
-                  ? "dropdown-menu dropdown-menu-lg dropdown-menu-end p-0 show"
-                  : "dropdown-menu dropdown-menu-lg dropdown-menu-end p-0"
-              }
-              aria-labelledby="page-header-search-dropdown"
-            >
-              <form className="p-2">
-                <div className="search-box">
-                  <div className="position-relative">
-                    <input type="text" className="form-control rounded bg-light border-0" placeholder="Search" />
-                    <i className="mdi mdi-magnify search-icon"></i>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
+			<li className="dropdown d-inline-block">
+				<Link to="/login/" className="btn header-item">
+					
+						<Icon name="user" className="icon-sm" />
+				</Link>
+			</li>
+				
 
-          <NotificationDropdown />
+          
 
         </div>
       </div>

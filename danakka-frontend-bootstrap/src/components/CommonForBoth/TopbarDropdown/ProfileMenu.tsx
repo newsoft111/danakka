@@ -76,7 +76,6 @@ const ProfileMenu = (props: any) => {
           />
           <span className="ms-2 d-none d-sm-block user-item-desc">
             <span className="user-name">{username}</span>
-            <span className="user-sub-title">Administrator</span>
           </span>
         </DropdownToggle>
         <DropdownMenu className="dropdown-menu-end pt-0" dir="left">
