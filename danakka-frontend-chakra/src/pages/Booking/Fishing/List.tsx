@@ -11,6 +11,13 @@ import {
 } from '@chakra-ui/react';
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 
+const getYesterday = (): Date => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    return yesterday;
+};
+const yesterday: Date = getYesterday();
 
 
 type BookingObj = {
@@ -53,6 +60,13 @@ const BookingFishingList = () => {
 	const [lastPage, setLastPage] = useState<number>(1); // add this line
 	const [bookings, setBookings] = useState<BookingObj[]>([]);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
+
+
+	const configs = {
+		dateFormat: 'yyyy-MM-dd',
+		dayNames: '월화수목금토일'.split(''),
+		monthNames: '1월 2월 3월 4월 5월 6월 7월 8월 9월 10월 11월 12월'.split(' '),
+	};
   
 	useEffect(() => {
 		const fetchData = async () => {
@@ -119,15 +133,17 @@ const BookingFishingList = () => {
 						<option value='option2'>Option 2</option>
 						<option value='option3'>Option 3</option>
 					</Select>
-
+					
 					<SingleDatepicker
+						configs={configs}
+						minDate={yesterday}
 						name="date-input"
 						date={date}
 						onDateChange={setDate}
 					/>
 
 					<Select placeholder='인원'>
-						<option value='option1'>Option 1</option>
+						<option value='option1'>1명</option>
 						<option value='option2'>Option 2</option>
 						<option value='option3'>Option 3</option>
 					</Select>
