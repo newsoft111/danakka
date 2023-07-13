@@ -30,7 +30,7 @@ async def read_all_fishing(
 		fishing_type: Optional[str] = None,
 		db: Session = Depends(get_db)
 	):
-	per_page = 12
+	per_page = 15
 	offset = (page - 1) * per_page
 
 	search_date = datetime.strptime(year + month.zfill(2) + day, '%Y%m%d').date()
