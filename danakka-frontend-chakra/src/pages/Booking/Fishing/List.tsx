@@ -4,8 +4,13 @@ import {
   Image,
   Badge,
   SimpleGrid,
+  Select,
+  Button,
+  Checkbox,
+  Stack,
 } from '@chakra-ui/react';
-import { StarIcon} from '@chakra-ui/icons'
+import { SingleDatepicker } from "chakra-dayzed-datepicker";
+
 
 
 type BookingObj = {
@@ -43,6 +48,7 @@ type BookingObj = {
 };
 
 const BookingFishingList = () => {
+	const [date, setDate] = useState(new Date());
 	const [currentPage, setCurrentPage] = useState<number>(1);
 	const [lastPage, setLastPage] = useState<number>(1); // add this line
 	const [bookings, setBookings] = useState<BookingObj[]>([]);
@@ -93,6 +99,47 @@ const BookingFishingList = () => {
   
 	return (
 		<React.Fragment>
+			<Box mb={4}>
+				<Stack direction={['column', 'row']} spacing='14px'>
+
+					<Select placeholder='낚시종류'>
+						<option value='option1'>Option 1</option>
+						<option value='option2'>Option 2</option>
+						<option value='option3'>Option 3</option>
+					</Select>
+
+					<Select placeholder='어종'>
+						<option value='option1'>Option 1</option>
+						<option value='option2'>Option 2</option>
+						<option value='option3'>Option 3</option>
+					</Select>
+
+					<Select placeholder='항구'>
+						<option value='option1'>Option 1</option>
+						<option value='option2'>Option 2</option>
+						<option value='option3'>Option 3</option>
+					</Select>
+
+					<SingleDatepicker
+						name="date-input"
+						date={date}
+						onDateChange={setDate}
+					/>
+
+					<Select placeholder='인원'>
+						<option value='option1'>Option 1</option>
+						<option value='option2'>Option 2</option>
+						<option value='option3'>Option 3</option>
+					</Select>
+
+					<Checkbox defaultChecked flexShrink={0}>예약가능</Checkbox>
+					
+					<Button colorScheme='teal' flexShrink={0} size='md'>
+						초기화
+					</Button>
+					
+				</Stack >
+			</Box>
 			<SimpleGrid columns={[2, 3, 4, 5]} spacing={10}>
 			{bookings.map((booking, index) => (
 				<Box
@@ -126,7 +173,6 @@ const BookingFishingList = () => {
 							fontWeight='semibold'
 							as='h4'
 							lineHeight='tight'
-							noOfLines={1}
 						>
 							[{booking.fishing_month.fishing.harbor.name}] {booking.fishing_month.fishing.display_business_name}
 						</Box>

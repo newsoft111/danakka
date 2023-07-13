@@ -1,23 +1,42 @@
-import React from 'react';
+import { useState } from 'react';
 import {
   Box,
   Flex,
   HStack,
   IconButton,
   Image,
-  Input,
-  InputGroup,
-  InputRightElement,
-  Text,
-  Avatar,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
 } from '@chakra-ui/react';
-import { FiBell, FiMenu, FiSearch, FiUser } from 'react-icons/fi';
+import { FiBell, FiMenu, FiUser } from 'react-icons/fi';
+import LoginModal from '../Authentication/LoginModal';
+import JoinModal from '../Authentication/JoinModal';
+
 
 const Header = () => {
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+
+  const openLoginModal = () => {
+    setIsLoginModalOpen(true);
+	setIsJoinModalOpen(false);
+  };
+
+  const closeLoginModal = () => {
+    setIsLoginModalOpen(false);
+  };
+
+  const openJoinModal = () => {
+    setIsLoginModalOpen(false);
+    setIsJoinModalOpen(true);
+  };
+
+  const closeJoinModal = () => {
+    setIsJoinModalOpen(false);
+  };
+
   return (
     <Flex
       as="header"
@@ -42,19 +61,7 @@ const Header = () => {
         <Image src="/path/to/logo.png" alt="Logo" h={6} />
       </Box>
 
-      {/* Search */}
-      <InputGroup maxW="xs">
-        <InputRightElement
-          pointerEvents="none"
-          children={<FiSearch color="gray.400" />}
-        />
-        <Input
-          type="text"
-          placeholder="Search..."
-          rounded="md"
-          _focus={{ outline: 'none' }}
-        />
-      </InputGroup>
+      
 
       {/* User */}
       <HStack spacing={4}>
@@ -73,7 +80,10 @@ const Header = () => {
             variant="ghost"
             colorScheme="gray"
             icon={<FiUser />}
+			onClick={openLoginModal}
           />
+
+		  
 
           <MenuList>
             <MenuItem>Profile</MenuItem>
@@ -83,6 +93,8 @@ const Header = () => {
         </Menu>
 
       </HStack>
+	  <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} openJoinModal={openJoinModal} />
+	  <JoinModal isOpen={isJoinModalOpen} onClose={closeJoinModal} openLoginModal={openLoginModal}/>
     </Flex>
   );
 };
