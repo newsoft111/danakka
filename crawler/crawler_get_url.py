@@ -24,7 +24,7 @@ class DanakkaCrawler:
 	def sunsang24(self):
 		self.driver.get("https://www.google.com/search?q=")
 
-		self.danakka_url = "http://newsoft.kr:8500"
+		self.danakka_url = "http://newsoft.kr:8500/api"
 
 		url = f"{self.danakka_url}/fishing/crawler/read/sunsang24/fishing_data/"
 		res = requests.get(url)

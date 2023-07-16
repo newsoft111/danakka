@@ -28,6 +28,8 @@ async def read_all_fishing(
 		day: str = str(today.day),
 		display_business_name: Optional[str] = None,
 		fishing_type: Optional[str] = None,
+		species_item: Optional[str] = None,
+		harbor: Optional[str] = None,
 		db: Session = Depends(get_db)
 	):
 	per_page = 15
@@ -42,13 +44,34 @@ async def read_all_fishing(
 	# 월(month) 필드를 species_month_date로 필터링하고, FishingMonth.fishing에 대한 join 로드를 설정
 	query = query.filter_by(month=species_month_date).options(joinedload(models.FishingMonth.fishing).joinedload(models.Fishing.harbor))
 
+	if fishing_type:
+		query = query.filter(models.Fishing.fishing_type.has(models.FishingType.name == fishing_type))
+
+	if harbor:
+		query = query.join(models.Fishing).filter(models.Fishing.harbor.has(models.Harbor.name == harbor))
+	
+	# FishingSpecies 모델에 대한 서브쿼리 생성
+	if species_item:
+		subquery = db.query(func.count(models.FishingSpecies.id))
+		subquery = subquery.join(models.FishingSpeciesItem)
+		subquery = subquery.filter(models.FishingSpeciesItem.name == species_item)
+		subquery = subquery.filter(models.FishingSpecies.fishing_month_id == models.FishingMonth.id)
+		subquery = subquery.correlate(models.FishingMonth)
+
+		# FishingSpecies 모델에 대한 species_item 조건 추가
+		query = query.filter(subquery.scalar_subquery() > 0)
+
 	# FishingBooking 모델에 대한 서브쿼리 생성
 	subquery = db.query(func.sum(models.FishingBooking.person))
 	subquery = subquery.join(models.Fishing)
 	subquery = subquery.filter(models.FishingBooking.date == search_date)
+	subquery = subquery.filter(models.Fishing.harbor.has(models.Harbor.name == harbor))
 	subquery = subquery.filter(models.FishingBooking.fishing_id == models.Fishing.id)
 	subquery = subquery.filter(models.Fishing.id == models.FishingMonth.fishing_id)
 	subquery = subquery.filter(models.FishingMonth.month == species_month_date)
+	if harbor:
+		subquery = subquery.filter(models.Fishing.harbor.has(models.Harbor.name == harbor))
+
 	subquery = subquery.group_by(models.Fishing.id)
 	subquery = subquery.correlate(models.FishingMonth)
 
@@ -57,6 +80,9 @@ async def read_all_fishing(
 
 	# FishingMonth 모델에 대한 예약 가능한 좌석 수 필터링
 	query = query.filter(models.FishingMonth.maximum_seat - func.coalesce(subquery.scalar_subquery(), 0) > 0)
+
+		
+
 	# 결과에 available_seats 추가하기
 	query = query.add_column(available_seats.label('available_seats'))
 
