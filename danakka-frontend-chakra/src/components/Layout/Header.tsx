@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Flex,
@@ -13,6 +13,8 @@ import {
 import { FiBell, FiMenu, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
 import JoinModal from '../Authentication/JoinModal';
+import { verifyToken } from '../../util/Authentication'; // verifyToken 함수 임포트
+
 
 const Header = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -41,6 +43,21 @@ const Header = () => {
     setIsLoggedIn(true); // 로그인 성공시 isLoggedIn을 true로 설정
     closeLoginModal(); // 로그인 모달 닫기
   };
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await verifyToken();
+        setIsLoggedIn(!!user); // user 값이 존재하면 true, 그렇지 않으면 false로 isLoggedIn 설정
+      } catch (error) {
+        setIsLoggedIn(false); // 토큰 검증 실패 시 isLoggedIn을 false로 설정
+        console.log('토큰 검증에 실패했습니다.', error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
 
   return (
     <Flex

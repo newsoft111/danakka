@@ -38,7 +38,7 @@ const LoginModal: React.FC<LoginModalProps> = ({
       });
 
       const accessToken = response.data.access_token;
-      console.log('Access Token:', accessToken);
+      localStorage.setItem('accessToken', accessToken);
 
       // 추가적인 작업 수행
 

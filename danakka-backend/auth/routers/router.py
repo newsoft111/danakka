@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from .. import models
 from sqlalchemy.orm import Session, joinedload, subqueryload, outerjoin, selectinload
 from db.connection import get_db
@@ -9,7 +9,7 @@ from typing import List, Optional
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from ..hashing import Hasher
-from ..security import authenticate_user, create_access_token 
+from ..security import authenticate_user, create_access_token, get_current_user
 
 
 router = APIRouter()
@@ -61,13 +61,12 @@ class AuthUserLoginBaseModel(BaseModel):
 	password: str
 
 @router.post(f"/api/{app_name}/login/")
-def login(
+def auth_user_login(
 		auth_user_login_base_model: AuthUserLoginBaseModel,
 		db: Session = Depends(get_db)
 	):
-	auth_user_login_dict = auth_user_login_base_model.dict(exclude_unset=True)
-	email_or_phone_number = auth_user_login_dict['email_or_phone_number']
-	password = auth_user_login_dict['password']
+	email_or_phone_number = auth_user_login_base_model.email_or_phone_number
+	password = auth_user_login_base_model.password
 
 	# 사용자 인증
 	auth_user = authenticate_user(email_or_phone_number, password, db)
@@ -78,3 +77,21 @@ def login(
 	access_token = create_access_token({"sub": auth_user.email})
 
 	return {"access_token": access_token, "token_type": "bearer"}
+
+
+class AuthUserVerifiTokenBaseModel(BaseModel):
+	token: str
+
+@router.post(f"/api/{app_name}/verify_token/")
+def auth_user_verify_token(
+		auth_user_verify_token_base_model: AuthUserVerifiTokenBaseModel
+	):
+	current_user = get_current_user(auth_user_verify_token_base_model.token)
+	if current_user["status_code"] == 200:
+		return {"user":current_user["detail"]}
+	else:
+		raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=current_user["detail"],
+            headers={"WWW-Authenticate": "Bearer"},
+        )
