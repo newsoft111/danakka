@@ -13,7 +13,7 @@ import {
 import { FiBell, FiMenu, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
 import JoinModal from '../Authentication/JoinModal';
-import { verifyToken } from '../../util/Authentication'; // verifyToken 함수 임포트
+import { verifyToken, Logout } from '../../util/Authentication'; // verifyToken 함수 임포트
 
 
 const Header = () => {
@@ -69,14 +69,7 @@ const Header = () => {
       bg="white"
       boxShadow="md"
     >
-      {/* Mobile Menu Button */}
-      <IconButton
-        aria-label="Menu"
-        variant="ghost"
-        colorScheme="gray"
-        icon={<FiMenu />}
-        display={{ base: 'block', md: 'none' }}
-      />
+
 
       {/* Logo */}
       <Box>
@@ -105,7 +98,7 @@ const Header = () => {
             <MenuList>
               <MenuItem>Profile</MenuItem>
               <MenuItem>Settings</MenuItem>
-              <MenuItem>Logout</MenuItem>
+              <MenuItem onClick={Logout}>Logout</MenuItem>
             </MenuList>
           </Menu>
         ) : (

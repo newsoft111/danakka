@@ -16,3 +16,10 @@ export async function verifyToken() {
     return null;
   }
 }
+
+
+// 로그아웃 함수
+export async function Logout() {
+  localStorage.removeItem('accessToken');
+  window.location.href = '/';
+}
