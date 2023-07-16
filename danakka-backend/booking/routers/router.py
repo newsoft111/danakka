@@ -20,7 +20,7 @@ def daterange(start_date, end_date):
         yield start_date + timedelta(n)
 
 
-@router.get(f"/{app_name}/list/")
+@router.get(f"/api/{app_name}/list/")
 async def read_all_fishing(
 		page: int = 1,
 		year: str = str(today.year),
@@ -74,7 +74,7 @@ async def read_all_fishing(
 	}
 
 
-@router.get(f"/{app_name}/{{fishing_pk}}/")
+@router.get(f"/api/{app_name}/{{fishing_pk}}/")
 async def read_fishing(
         fishing_pk: int,
         year: int = int(today.year),

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Text, Integer, String, ForeignKey, Boolean, Numeric, DateTime, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime
 
 Base = declarative_base()
 
@@ -11,4 +12,4 @@ class AuthUser(Base):
 	email = Column(String)
 	phone_number = Column(String)
 	password = Column(String)
-	created_at = Column(DateTime)
+	created_at = Column(DateTime, default=datetime.now())
