@@ -12,7 +12,7 @@ import {
 	Input,
 	Button,
 } from '@chakra-ui/react';
-import JoinModal from '../Authentication/JoinModal';
+
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -32,17 +32,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, openJoinModal 
 		>
 		<ModalOverlay />
 			<ModalContent>
-			<ModalHeader>Create your account</ModalHeader>
+			<ModalHeader>로그인</ModalHeader>
 			<ModalCloseButton />
 			<ModalBody pb={6}>
 				<FormControl>
-				<FormLabel>First name</FormLabel>
-				<Input ref={initialRef} placeholder='First name' />
+				<FormLabel>이메일/전화번호</FormLabel>
+				<Input ref={initialRef} placeholder='이메일/전화번호' />
 				</FormControl>
 
 				<FormControl mt={4}>
-				<FormLabel>Last name</FormLabel>
-				<Input placeholder='Last name' />
+				<FormLabel>비밀번호</FormLabel>
+				<Input placeholder='비밀번호' />
 				</FormControl>
 			</ModalBody>
 

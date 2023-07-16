@@ -32,17 +32,27 @@ const JoinModal: React.FC<JoinModalProps> = ({ isOpen, onClose, openLoginModal }
 		>
 		<ModalOverlay />
 			<ModalContent>
-			<ModalHeader>Create your account</ModalHeader>
+			<ModalHeader>회원가입</ModalHeader>
 			<ModalCloseButton />
 			<ModalBody pb={6}>
 				<FormControl>
-				<FormLabel>First name</FormLabel>
-				<Input ref={initialRef} placeholder='First name' />
+				<FormLabel>이메일</FormLabel>
+				<Input ref={initialRef} placeholder='이메일' />
 				</FormControl>
 
 				<FormControl mt={4}>
-				<FormLabel>Last name</FormLabel>
-				<Input placeholder='Last name' />
+				<FormLabel>전화번호</FormLabel>
+				<Input ref={initialRef} placeholder='전화번호' />
+				</FormControl>
+
+				<FormControl mt={4}>
+				<FormLabel>비밀번호</FormLabel>
+				<Input placeholder='비밀번호' />
+				</FormControl>
+
+				<FormControl mt={4}>
+				<FormLabel>비밀번호 확인</FormLabel>
+				<Input placeholder='비밀번호 확인' />
 				</FormControl>
 			</ModalBody>
 

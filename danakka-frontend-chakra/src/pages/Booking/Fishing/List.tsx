@@ -165,7 +165,10 @@ const BookingFishingList = () => {
 					overflow='hidden'
 					key={index}
 				>
-					<Image src={booking.fishing_month.fishing.thumbnail}/>
+					<Image 
+					w="100%"
+					src={booking.fishing_month.fishing.thumbnail}
+					/>
 			
 					<Box p='6'>
 						<Box display='flex' alignItems='baseline'>
