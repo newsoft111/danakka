@@ -10,6 +10,7 @@ import {
   Stack,
 } from '@chakra-ui/react';
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
+import {getData} from '../../../util/Api'
 
 const getYesterday = (): Date => {
     const today = new Date();
@@ -20,39 +21,49 @@ const getYesterday = (): Date => {
 const yesterday: Date = getYesterday();
 
 
-type BookingObj = {
-	fishing_month: {
+interface Fishing {
+	display_business_name: string;
+	fishing_type_id: number;
+	id: number;
+	site_url: string | null;
+	fishing_crawler_id: number;
+	thumbnail: string;
+	is_deleted: boolean;
+	introduce: string | null;
+	reason_for_deletion: null;
+	maximum_seat: number;
+	needs_check: boolean;
+	price: null;
+	business_address: string;
+	created_at: string;
+	harbor_id: number;
+	updated_at: string;
+	harbor: {
+	  address: null;
+	  name: string;
 	  id: number;
-	  maximum_seat: number;
-	  month: string;
-	  fishing_id: number;
-	  fishing: {
-		harbor_id: number;
-		updated_at: string;
-		display_business_name: string;
-		fishing_type_id: number;
-		id: number;
-		site_url: string | null;
-		fishing_crawler_id: number;
-		thumbnail: string;
-		is_deleted: boolean;
-		introduce: string;
-		reason_for_deletion: string | null;
-		maximum_seat: number;
-		needs_check: boolean;
-		price: string | null;
-		business_address: string;
-		created_at: string;
-		harbor: {
-		  sea: any | null;
-		  id: number;
-		  address: string | null;
-		  name: string;
-		};
-	  };
+	  sea: null;
 	};
+}
+  
+interface FishingMonth {
+	month: string;
+	fishing_id: number;
+	id: number;
+	maximum_seat: number;
+	fishing: Fishing;
+}
+  
+interface Booking {
+	fishing_month: FishingMonth;
 	available_seats: number;
-};
+}
+  
+interface BookingObj {
+	booking_objs: Booking[];
+	last_page: number;
+}
+  
 
 const BookingFishingList = () => {
 	const [currentPage, setCurrentPage] = useState<number>(1);
@@ -76,16 +87,16 @@ const BookingFishingList = () => {
 		  setIsLoading(true);
 	  
 		  try {
-			const response = await fetch(`/api/fishing/list/?page=${currentPage}&fishing_type=${selectedFishingType}&species_item=${selectedSpeciesItem}&harbor=${SelectedHarbor}`, {
-			  headers: {
-				Accept: "application/json",
-				"Content-Type": "application/json",
-			  },
-			});
-	  
-			const data = await response.json();
-			setBookings((prevBookings) => [...prevBookings, ...data.booking_objs]);
-			setLastPage(data.last_page); // add this line
+			const data = await getData<BookingObj>(`/api/fishing/list/?page=${currentPage}&fishing_type=${selectedFishingType}&species_item=${selectedSpeciesItem}&harbor=${SelectedHarbor}`, {});
+
+			if (data) {
+				setBookings((prevBookings) => [
+					...prevBookings,
+					{ booking_objs: [...data.booking_objs], last_page: data.last_page },
+				]);
+				  
+				setLastPage(data.last_page);
+			}
 			setIsLoading(false);
 		  } catch (error) {
 			console.error(error);
@@ -194,7 +205,8 @@ const BookingFishingList = () => {
 				</Stack >
 			</Box>
 			<SimpleGrid columns={[2, 3, 4, 5]} spacing={10}>
-			{bookings.map((booking, index) => (
+			{bookings.map((bookingObj) =>
+    			bookingObj.booking_objs.map((booking, index) => (
 				<Box
 					maxW='sm'
 					borderWidth='1px'
@@ -246,7 +258,8 @@ const BookingFishingList = () => {
 
 				</Box>
 				
-			))}
+				))
+  			)}
 			</SimpleGrid>
 		</React.Fragment>
 	)
