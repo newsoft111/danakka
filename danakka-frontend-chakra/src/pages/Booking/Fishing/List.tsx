@@ -8,6 +8,7 @@ import {
   Button,
   Checkbox,
   Stack,
+  Link,
 } from '@chakra-ui/react';
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import {getData} from '../../../util/Api'
@@ -206,57 +207,59 @@ const BookingFishingList = () => {
 			</Box>
 			<SimpleGrid columns={[2, 3, 4, 5]} spacing={10}>
 			{bookings.map((bookingObj) =>
-    			bookingObj.booking_objs.map((booking, index) => (
-				<Box
-					maxW='sm'
-					borderWidth='1px'
-					borderRadius='lg'
-					overflow='hidden'
-					key={index}
-				>
-					<Image 
-					w="100%"
-					src={booking.fishing_month.fishing.thumbnail}
-					/>
-			
-					<Box p='6'>
-						<Box display='flex' alignItems='baseline'>
-							<Badge borderRadius='full' px='2' colorScheme='teal'>
-							New
-							</Badge>
-							<Box
-							color='gray.500'
-							fontWeight='semibold'
-							letterSpacing='wide'
-							fontSize='xs'
-							textTransform='uppercase'
-							ml='2'
-							>
-							3 beds &bull; 2 baths
+				bookingObj.booking_objs.map((booking, index) => (
+				<Link href={`/booking/fishing/${booking.fishing_month.fishing.id}/`}>
+					<Box
+						maxW='sm'
+						borderWidth='1px'
+						borderRadius='lg'
+						overflow='hidden'
+						key={index}
+					>
+						<Image 
+						w="100%"
+						src={booking.fishing_month.fishing.thumbnail}
+						/>
+				
+						<Box p='6'>
+							<Box display='flex' alignItems='baseline'>
+								<Badge borderRadius='full' px='2' colorScheme='teal'>
+								New
+								</Badge>
+								<Box
+								color='gray.500'
+								fontWeight='semibold'
+								letterSpacing='wide'
+								fontSize='xs'
+								textTransform='uppercase'
+								ml='2'
+								>
+								3 beds &bull; 2 baths
+								</Box>
 							</Box>
-						</Box>
-				
-						<Box
-							mt='1'
-							fontWeight='semibold'
-							as='h4'
-							lineHeight='tight'
-						>
-							[{booking.fishing_month.fishing.harbor.name}] {booking.fishing_month.fishing.display_business_name}
-						</Box>
-				
-						<Box>
-							123123
-							<Box as='span' color='gray.600' fontSize='sm'>
-							/ wk
-							</Box>
-						</Box>
-				
-						
-					</Box>
 					
+							<Box
+								mt='1'
+								fontWeight='semibold'
+								as='h4'
+								lineHeight='tight'
+							>
+								[{booking.fishing_month.fishing.harbor.name}] {booking.fishing_month.fishing.display_business_name}
+							</Box>
+					
+							<Box>
+								123123
+								<Box as='span' color='gray.600' fontSize='sm'>
+								/ wk
+								</Box>
+							</Box>
+					
+							
+						</Box>
+						
 
-				</Box>
+					</Box>
+				</Link>
 				
 				))
   			)}
