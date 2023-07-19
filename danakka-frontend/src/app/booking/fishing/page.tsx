@@ -209,7 +209,7 @@ const BookingFishingList = () => {
 			<SimpleGrid columns={[2, 3, 4, 5]} spacing={10}>
 			{bookings.map((bookingObj) =>
 				bookingObj.booking_objs.map((booking, index) => (
-				<Link href={`/booking/fishing/${booking.fishing_month.fishing.id}/`} key={index}>
+				<Link href={`/booking/fishing/${booking.fishing_month.fishing.id}`} key={index}>
 					<Box
 						maxW='sm'
 						borderWidth='1px'
