@@ -1,19 +1,30 @@
-import React from 'react';
-import { Box, Flex, Text } from '@chakra-ui/react';
+import {
+	Box,
+	Container,
+	Stack,
+	Text,
+	useColorModeValue,
+  } from '@chakra-ui/react';
+  import { FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa';
+  
 
-const Navbar: React.FC = () => {
-  return (
-    <Box bg="blue.500" py={4} px={8} color="white">
-      <Flex justify="space-between" align="center">
-        <Text fontSize="xl" fontWeight="bold">
-          My App
-        </Text>
-        <Text fontSize="md" fontWeight="bold">
-          Real-time Reservations
-        </Text>
-      </Flex>
-    </Box>
-  );
-};
-
-export default Navbar;
+  
+  export default function SmallWithLogoLeft() {
+	return (
+	  <Box
+		bg={useColorModeValue('gray.50', 'gray.900')}
+		color={useColorModeValue('gray.700', 'gray.200')}>
+		<Container
+		  as={Stack}
+		  maxW={'6xl'}
+		  py={4}
+		  direction={{ base: 'column', md: 'row' }}
+		  spacing={4}
+		  justify={{ base: 'center', md: 'space-between' }}
+		  align={{ base: 'center', md: 'center' }}>
+		  <Text>© 2022 Chakra Templates. All rights reserved</Text>
+		  
+		</Container>
+	  </Box>
+	);
+  }

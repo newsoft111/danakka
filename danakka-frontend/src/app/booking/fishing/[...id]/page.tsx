@@ -71,7 +71,7 @@ const BookingFishingDetail = () => {
 	};
 
 	fetchData();
-	}, [useParams]);
+	}, [id]);
 
 	const currentDate = new Date();
 	const currentYear = currentDate.getFullYear();

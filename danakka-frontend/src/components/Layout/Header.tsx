@@ -4,12 +4,14 @@ import {
   Box,
   Flex,
   HStack,
-  IconButton,
+  IconButton, 
   Image,
   Menu,
   MenuButton,
   MenuList,
   MenuItem,
+  MenuDivider,
+  MenuGroup,
 } from '@chakra-ui/react';
 import { FiBell, FiMenu, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
@@ -97,9 +99,13 @@ const Header = () => {
               icon={<FiUser />}
             />
             <MenuList>
-              <MenuItem>Profile</MenuItem>
-              <MenuItem>Settings</MenuItem>
-              <MenuItem onClick={Logout}>Logout</MenuItem>
+				<MenuItem>내프로필</MenuItem>
+				<MenuItem>보안설정</MenuItem>
+				<MenuDivider />
+				<MenuItem>티켓 : 100장</MenuItem>
+				<MenuDivider />
+				<MenuItem onClick={Logout}>로그아웃</MenuItem>
+					
             </MenuList>
           </Menu>
         ) : (

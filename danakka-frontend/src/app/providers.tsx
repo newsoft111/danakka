@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { CacheProvider  } from '@chakra-ui/next-js'
 import { ChakraProvider, CSSReset, Box } from '@chakra-ui/react'
 import Header from '../components/Layout/Header';
+import Footer from '../components/Layout/Footer';
 import CenterSnipper from "../components/Common/CenterSnipper";
 
 export function Providers({ 
@@ -30,6 +31,7 @@ export function Providers({
 				{children}
 			</Box>
 		)}
+		<Footer />
 
       </ChakraProvider>
     </CacheProvider>
