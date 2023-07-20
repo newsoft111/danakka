@@ -1,9 +1,8 @@
 'use client';
 import React, { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import CenterSnipper from "../components/Common/CenterSnipper";
 
-export const Page: React.FC = () => {
+const Page = () => {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -13,7 +12,7 @@ export const Page: React.FC = () => {
     }
   }, [pathname, router]);
 
-  return <CenterSnipper/>;
+  return <div></div>;
 };
 
 export default Page;

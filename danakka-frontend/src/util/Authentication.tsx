@@ -1,6 +1,6 @@
 import {postData} from '../util/Api'
 // 토큰 검증 함수
-export async function verifyToken() {
+export async function VerifyToken() {
   try {
     const accessToken = localStorage.getItem('accessToken');
 	return postData('/api/auth/verify_token/', { token: accessToken });

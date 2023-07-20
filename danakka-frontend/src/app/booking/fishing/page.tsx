@@ -1,5 +1,6 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import NextLink from 'next/link'
 import {
   Box,
   Image,
@@ -132,22 +133,24 @@ const BookingFishingList = () => {
 		setBookings([]); // bookings 배열 초기화
 	};
   
-	const handleScroll = () => {
+	const handleScroll = useCallback(() => {
 		if (
-		  window.innerHeight + document.documentElement.scrollTop === document.documentElement.offsetHeight &&
+		  window.innerHeight + document.documentElement.scrollTop ===
+			document.documentElement.offsetHeight &&
 		  currentPage < lastPage &&
 		  !isLoading
 		) {
 		  setCurrentPage((prevPage) => prevPage + 1);
 		}
-	  };
+	  }, [currentPage, lastPage, isLoading]);
 	  
 	  useEffect(() => {
 		window.addEventListener("scroll", handleScroll);
 		return () => {
 		  window.removeEventListener("scroll", handleScroll);
 		};
-	}, [currentPage, lastPage, isLoading]);
+	}, [handleScroll]);
+	  
 	  
   
 	return (
@@ -209,7 +212,10 @@ const BookingFishingList = () => {
 			<SimpleGrid columns={[2, 3, 4, 5]} spacing={10}>
 			{bookings.map((bookingObj) =>
 				bookingObj.booking_objs.map((booking, index) => (
-				<Link href={`/booking/fishing/${booking.fishing_month.fishing.id}`} key={index}>
+				<Link
+				as={NextLink}
+				href={`/booking/fishing/${booking.fishing_month.fishing.id}`} key={index}
+				>
 					<Box
 						maxW='sm'
 						borderWidth='1px'
@@ -219,6 +225,7 @@ const BookingFishingList = () => {
 						<Image 
 						w="100%"
 						src={booking.fishing_month.fishing.thumbnail}
+						alt=''
 						/>
 				
 						<Box p='6'>

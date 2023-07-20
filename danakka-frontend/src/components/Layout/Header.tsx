@@ -14,7 +14,7 @@ import {
 import { FiBell, FiMenu, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
 import JoinModal from '../Authentication/JoinModal';
-import { verifyToken, Logout } from '../../util/Authentication'; // verifyToken 함수 임포트
+import { VerifyToken, Logout } from '../../util/Authentication'; // verifyToken 함수 임포트
 
 
 const Header = () => {
@@ -48,7 +48,7 @@ const Header = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const user = await verifyToken();
+        const user = await VerifyToken();
         setIsLoggedIn(!!user); // user 값이 존재하면 true, 그렇지 않으면 false로 isLoggedIn 설정
       } catch (error) {
         setIsLoggedIn(false); // 토큰 검증 실패 시 isLoggedIn을 false로 설정

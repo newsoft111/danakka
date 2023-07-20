@@ -1,5 +1,6 @@
+"use client"
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "next/navigation";
 import {
   Box,
   Button,
@@ -15,7 +16,7 @@ import {
   Thead,
   Tr
 } from "@chakra-ui/react";
-import {getData} from '../../../util/Api'
+import {getData} from '../../../../util/Api'
 
 
 interface FishingObj {
@@ -57,35 +58,35 @@ interface FishingData {
 }
 
 const BookingFishingDetail = () => {
-    const [fishingData, setFishingData] = useState<FishingData>();
+	const [fishingData, setFishingData] = useState<FishingData>();
 
-    const { no } = useParams();
+	const { id }  = useParams();
 
-    useEffect(() => {
-		const fetchData = async () => {
-			const data = await getData<FishingData>(`/api/fishing/${no}/`, {});
-			if (data) {
-				setFishingData(data);
-			}
-		};
-	  
-		fetchData();
-    }, []);
-	
+	useEffect(() => {
+	const fetchData = async () => {
+		const data = await getData<FishingData>(`/api/fishing/${id}/`, {});
+		if (data) {
+		setFishingData(data);
+		}
+	};
 
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1;
+	fetchData();
+	}, [useParams]);
 
-    const months = [];
+	const currentDate = new Date();
+	const currentYear = currentDate.getFullYear();
+	const currentMonth = currentDate.getMonth() + 1;
 
-    for (let i = 0; i < 12; i++) {
-        const month = (currentMonth + i) % 12 || 12; 
-        const year = currentYear + Math.floor((currentMonth + i -1) /12);
-        const label = `${month}월`;
+	const months = [];
 
-        months.push({ month, year, label });
-    }
+	for (let i = 0; i < 12; i++) {
+	const month = (currentMonth + i) % 12 || 12;
+	const year = currentYear + Math.floor((currentMonth + i - 1) / 12);
+	const label = `${month}월`;
+
+	months.push({ month, year, label });
+	}
+
 
     return (
         <Box>

@@ -1,23 +1,36 @@
 // app/providers.tsx
 'use client'
-
-import { CacheProvider } from '@chakra-ui/next-js'
-import { ChakraProvider, Box } from '@chakra-ui/react'
+import React, { useEffect, useState } from "react";
+import { CacheProvider  } from '@chakra-ui/next-js'
+import { ChakraProvider, CSSReset, Box } from '@chakra-ui/react'
 import Header from '../components/Layout/Header';
+import CenterSnipper from "../components/Common/CenterSnipper";
 
 export function Providers({ 
     children 
   }: { 
   children: React.ReactNode 
   }) {
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, []);
+
   return (
     <CacheProvider>
       <ChakraProvider>
+		<CSSReset />
 		<Header />
-		<Box w={"100%"} p={4}>
-			{children}
-		</Box>
-        
+		{isLoading ? (
+			<CenterSnipper/>
+		) : (
+			<Box w={"100%"} p={4}>
+				{children}
+			</Box>
+		)}
+
       </ChakraProvider>
     </CacheProvider>
   )
