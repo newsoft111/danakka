@@ -11,12 +11,13 @@ import {
   MenuList,
   MenuItem,
   MenuDivider,
-  MenuGroup,
+  Link,
 } from '@chakra-ui/react';
 import { FiBell, FiMenu, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
 import JoinModal from '../Authentication/JoinModal';
 import { VerifyToken, Logout } from '../../util/Authentication'; // verifyToken 함수 임포트
+import NextLink from 'next/link'
 
 
 const Header = () => {
@@ -76,7 +77,9 @@ const Header = () => {
 
       {/* Logo */}
       <Box>
-        <Image src="/path/to/logo.png" alt="Logo" h={6} />
+		<Link as={NextLink} href='/'>
+        	<Image src="/path/to/logo.png" alt="Logo" h={6} />
+		</Link>
       </Box>
 
       {/* User */}
@@ -99,10 +102,11 @@ const Header = () => {
               icon={<FiUser />}
             />
             <MenuList>
-				<MenuItem>내프로필</MenuItem>
-				<MenuItem>보안설정</MenuItem>
+				<MenuItem as={NextLink} href='/mypage'>대시보드</MenuItem>
+				<MenuItem as={NextLink} href='/mypage/profile'>내프로필</MenuItem>
+				<MenuItem as={NextLink} href='/mypage/security'>보안설정</MenuItem>
 				<MenuDivider />
-				<MenuItem>티켓 : 100장</MenuItem>
+				<MenuItem as={NextLink} href='/mypage/ticket'>티켓 : 100장</MenuItem>
 				<MenuDivider />
 				<MenuItem onClick={Logout}>로그아웃</MenuItem>
 					
