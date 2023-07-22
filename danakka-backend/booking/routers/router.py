@@ -13,40 +13,43 @@ router = APIRouter()
 app_name = 'fishing'
 
 
-today = datetime.today().date()
+
 
 @router.get(f"/api/{app_name}/list/")
 async def read_all_fishing(
 		page: int = 1,
-		year: str = str(today.year),
-		month: str = str(today.month),
-		day: str = str(today.day),
+		date: Optional[str] = None,
 		display_business_name: Optional[str] = None,
 		fishing_type: Optional[str] = None,
 		species_item: Optional[str] = None,
 		harbor: Optional[str] = None,
 		db: Session = Depends(get_db)
 ):
-    per_page = 15
-    offset = (page - 1) * per_page
+	today = datetime.today().date()
+    
+	date = datetime.strptime(date, '%Y-%m-%d') if date is not None else today
 
-    search_date = datetime.strptime(year + month.zfill(2) + day, '%Y%m%d').date()
-    species_month_date = year + month.zfill(2)
 
-    query = create_fishing_month_query(db, species_month_date, fishing_type, harbor)
-    if species_item:
-        query = filter_by_species_item(db, query, species_item)
-    query, available_seats = filter_by_available_seats(db, query, search_date, harbor, species_month_date)
-    total_count = query.count()
-    fishing_months_with_available_seats = query.limit(per_page).offset(offset).all()
+	per_page = 15
+	offset = (page - 1) * per_page
 
-    return {
-        "booking_objs": [
-            {"fishing_month": fishing_month, "available_seats": available_seats} 
-            for fishing_month, available_seats in fishing_months_with_available_seats
-        ],
-        "last_page":total_count // per_page + 1
-    }
+	search_date = date
+	species_month_date = str(date.year) + str(date.month).zfill(2)
+
+	query = create_fishing_month_query(db, species_month_date, fishing_type, harbor)
+	if species_item:
+		query = filter_by_species_item(db, query, species_item)
+	query, available_seats = filter_by_available_seats(db, query, search_date, harbor, species_month_date)
+	total_count = query.count()
+	fishing_months_with_available_seats = query.limit(per_page).offset(offset).all()
+
+	return {
+		"booking_objs": [
+			{"fishing_month": fishing_month, "available_seats": available_seats} 
+			for fishing_month, available_seats in fishing_months_with_available_seats
+		],
+		"last_page":total_count // per_page + 1
+	}
 
 def create_fishing_month_query(db: Session, species_month_date: str, fishing_type: Optional[str], harbor: Optional[str]):
     """FishingMonth 모델에 대한 쿼리 생성"""
@@ -89,36 +92,37 @@ def filter_by_available_seats(db: Session, query, search_date: date, harbor: Opt
 
 @router.get(f"/api/{app_name}/{{fishing_pk}}/")
 async def read_fishing(
-        fishing_pk: int,
-        year: int = int(today.year),
-        month: int = int(today.month),
-        db: Session = Depends(get_db)
-    ):
-	start_date = date(year, month, 1)
-	end_date = start_date + relativedelta(months=1)
+    fishing_pk: int,
+    dateYM: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+	today = datetime.today().date()
+	dateYM = datetime.strptime(dateYM, '%Y%m').date() if dateYM is not None else today
+	start_date = dateYM
 
+	next_month = dateYM.replace(day=1) + timedelta(days=32)
+	end_date = next_month - timedelta(days=next_month.day) + timedelta(days=1)
+
+	# Get fishing month object
 	fishing_month_obj = db.query(models.FishingMonth).filter(
 		models.FishingMonth.fishing_id == fishing_pk,
-		models.FishingMonth.month == f"{year}{month:02d}"
+		models.FishingMonth.month == f"{dateYM.year}{dateYM.month:02d}"
 	).options(
 		selectinload(models.FishingMonth.fishing_species)
 		.selectinload(models.FishingSpecies.fishing_species_item)
 	).first()
 
-
+	# Handle error if fishing month object not found
 	if not fishing_month_obj:
 		return {"error": "Fishing month object not found"}
-	print(fishing_month_obj.fishing_species)
+
+	# Get maximum seat and species item name
 	maximum_seat = fishing_month_obj.maximum_seat
+	species_item_name = ','.join(
+		[fishing_species.fishing_species_item.name for fishing_species in fishing_month_obj.fishing_species]
+	)
 
-	fishing_species_list = []
-	for fishing_species in fishing_month_obj.fishing_species:
-		fishing_species_list.append(fishing_species.fishing_species_item.name)
-
-	species_item_name = ','.join(fishing_species_list)
-
-	fishing_booking_objs = []
-
+	# Get booking data
 	booking_query = db.query(
 		models.FishingBooking.date,
 		func.sum(models.FishingBooking.person)
@@ -128,23 +132,27 @@ async def read_fishing(
 		models.FishingBooking.date < end_date
 	).group_by(models.FishingBooking.date)
 
-
-	bookings = {str(booking_date): {
+	bookings = {
+		str(booking_date): {
 			"total_person": total_person,
 			"maximum_seat": maximum_seat,
-			"available_seats": maximum_seat - total_person
-		} for booking_date, total_person in booking_query}
+			"available_seats": maximum_seat - total_person,
+			"date": str(booking_date)
+		} for booking_date, total_person in booking_query
+	}
 
 
-	for single_date in daterange(start_date, end_date):
-		if today <= single_date:
-			single_date_str = single_date.strftime("%Y-%m-%d")
-			booking_data = bookings.get(single_date_str, None)
-			if booking_data is None:
-				booking_data = {"total_person":0, "maximum_seat":maximum_seat, "available_seats":maximum_seat,"date": single_date_str}
-			fishing_booking_objs.append(booking_data)
+	# Generate fishing booking objects
+	fishing_booking_objs = [
+		bookings.get(single_date.strftime("%Y-%m-%d"), {
+			"total_person": 0,
+			"maximum_seat": maximum_seat,
+			"available_seats": maximum_seat,
+			"date": single_date.strftime("%Y-%m-%d")
+		}) for single_date in daterange(start_date, end_date) if today <= single_date
+	]
 
-
+	# Get fishing object
 	fishing_obj = db.query(models.Fishing).filter(models.Fishing.id == fishing_pk).options(
 		selectinload(models.Fishing.harbor)
 	).first()
@@ -155,6 +163,7 @@ async def read_fishing(
 		"fishing_objs": fishing_obj
 	}
 
+
 def daterange(start_date, end_date):
-    for n in range(int((end_date - start_date).days)):
-        yield start_date + timedelta(n)
+	for n in range(int((end_date - start_date).days)):
+		yield start_date + timedelta(n)

@@ -14,6 +14,8 @@ import {
 } from '@chakra-ui/react';
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import {getData} from '../../../util/Api'
+import {DateToStr} from '../../../util/DateFormat'
+import {DateToStrYM} from '../../../util/DateFormat'
 
 const getYesterday = (): Date => {
     const today = new Date();
@@ -90,7 +92,10 @@ const BookingFishingList = () => {
 		  setIsLoading(true);
 	  
 		  try {
-			const data = await getData<BookingObj>(`/api/fishing/list/?page=${currentPage}&fishing_type=${selectedFishingType}&species_item=${selectedSpeciesItem}&harbor=${SelectedHarbor}`, {});
+			const date = DateToStr(SelectedDate);
+
+			const data = await getData<BookingObj>(`/api/fishing/list/?page=${currentPage}&fishing_type=${selectedFishingType}&species_item=${selectedSpeciesItem}&harbor=${SelectedHarbor}&date=${date}`, {});
+			
 
 			if (data) {
 				setBookings((prevBookings) => [
@@ -190,7 +195,6 @@ const BookingFishingList = () => {
 					<SingleDatepicker
 						configs={configs}
 						minDate={yesterday}
-						name="date-input"
 						date={SelectedDate}
 						onDateChange={handleDateChange}
 					/>
@@ -214,7 +218,7 @@ const BookingFishingList = () => {
 				bookingObj.booking_objs.map((booking, index) => (
 				<Link
 				as={NextLink}
-				href={`/booking/fishing/${booking.fishing_month.fishing.id}`} key={index}
+				href={`/booking/fishing/${booking.fishing_month.fishing.id}?dateYM=${DateToStrYM(SelectedDate)}`} key={index}
 				>
 					<Box
 						maxW='sm'
@@ -224,7 +228,7 @@ const BookingFishingList = () => {
 					>
 						<Image 
 						w="100%"
-						src={booking.fishing_month.fishing.thumbnail}
+						src={`http://newsoft.kr:8500${booking.fishing_month.fishing.thumbnail}`}
 						alt=''
 						/>
 				
