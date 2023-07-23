@@ -2,7 +2,9 @@ from sqlalchemy import Column, Text, Integer, String, ForeignKey, Boolean, Numer
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
+
 Base = declarative_base()
+
 
 class FishingType(Base):
 	__tablename__ = "fishing_type"

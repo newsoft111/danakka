@@ -6,8 +6,10 @@ from sqlalchemy.orm import Session
 from db.connection import get_db
 from . import models
 from .hashing import Hasher
-
+from util.timezone import get_local_timezone
 import jwt
+
+local_timezone = get_local_timezone()
 
 SECRET_KEY = "1874631815d5d1fa0dd80d3bf86ba5f6c47c3758409b15c17b88a7acc115b77b"
 ALGORITHM = "HS256"
@@ -36,9 +38,9 @@ def create_access_token(
     
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(local_timezone) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(local_timezone) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

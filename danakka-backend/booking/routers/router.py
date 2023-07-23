@@ -3,16 +3,15 @@ from .. import models
 from sqlalchemy.orm import Session, joinedload, selectinload
 from db.connection import get_db
 from sqlalchemy import func
-from pydantic import BaseModel
-from typing import List, Optional
+from pydantic import BaseModel, conint
+from typing import List, Optional, Union
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
+from util.timezone import get_local_timezone
 
 router = APIRouter()
-
+local_timezone = get_local_timezone()
 app_name = 'fishing'
-
-
 
 
 @router.get(f"/api/{app_name}/list/")
@@ -23,10 +22,16 @@ async def read_all_fishing(
 		fishing_type: Optional[str] = None,
 		species_item: Optional[str] = None,
 		harbor: Optional[str] = None,
+        available_seats_number: Optional[int] = 0,
+        can_booking: Optional[bool] = True,
 		db: Session = Depends(get_db)
 ):
-	today = datetime.today().date()
-    
+	if can_booking:
+		available_seats_number = 1 if available_seats_number < 1 else available_seats_number
+
+		
+	today = datetime.now(local_timezone).date()
+
 	date = datetime.strptime(date, '%Y-%m-%d') if date is not None else today
 
 
@@ -39,17 +44,34 @@ async def read_all_fishing(
 	query = create_fishing_month_query(db, species_month_date, fishing_type, harbor)
 	if species_item:
 		query = filter_by_species_item(db, query, species_item)
-	query, available_seats = filter_by_available_seats(db, query, search_date, harbor, species_month_date)
+	query, available_seats = filter_by_available_seats(db, query, search_date, harbor, species_month_date, available_seats_number, can_booking)
 	total_count = query.count()
-	fishing_months_with_available_seats = query.limit(per_page).offset(offset).all()
+	fishing_months_with_available_seats = (
+		query
+		.options(
+			joinedload(models.FishingMonth.fishing_species).joinedload(
+				models.FishingSpecies.fishing_species_item
+			)
+		)
+		.limit(per_page)
+		.offset(offset)
+		.all()
+	)
 
 	return {
-		"booking_objs": [
-			{"fishing_month": fishing_month, "available_seats": available_seats} 
-			for fishing_month, available_seats in fishing_months_with_available_seats
-		],
-		"last_page":total_count // per_page + 1
-	}
+    "booking_objs": [
+        {
+            "fishing_month": fishing_month,
+            "available_seats": available_seats,
+            "species_items": [
+                species.fishing_species_item.name
+                for species in fishing_month.fishing_species
+            ],
+        }
+        for fishing_month, available_seats in fishing_months_with_available_seats
+    ],
+    "last_page": total_count // per_page + 1,
+}
 
 def create_fishing_month_query(db: Session, species_month_date: str, fishing_type: Optional[str], harbor: Optional[str]):
     """FishingMonth 모델에 대한 쿼리 생성"""
@@ -70,23 +92,24 @@ def filter_by_species_item(db: Session, query, species_item: str):
     subquery = subquery.correlate(models.FishingMonth)
     return query.filter(subquery.scalar_subquery() > 0)
 
-def filter_by_available_seats(db: Session, query, search_date: date, harbor: Optional[str], species_month_date: str):
-    """FishingBooking 모델에 대한 서브쿼리 생성 및 예약 가능한 좌석 수 필터링"""
-    subquery = db.query(func.sum(models.FishingBooking.person))
-    subquery = subquery.join(models.Fishing)
-    subquery = subquery.filter(models.FishingBooking.date == search_date)
-    if harbor:
-        subquery = subquery.filter(models.Fishing.harbor.has(models.Harbor.name == harbor))
-    subquery = subquery.filter(models.FishingBooking.fishing_id == models.Fishing.id)
-    subquery = subquery.filter(models.Fishing.id == models.FishingMonth.fishing_id)
-    subquery = subquery.filter(models.FishingMonth.month == species_month_date)
-    subquery = subquery.group_by(models.Fishing.id)
-    subquery = subquery.correlate(models.FishingMonth)
+def filter_by_available_seats(db: Session, query, search_date: date, harbor: Optional[str], species_month_date: str, available_seats_number: int, can_booking:int):
+	"""FishingBooking 모델에 대한 서브쿼리 생성 및 예약 가능한 좌석 수 필터링"""
+	subquery = db.query(func.sum(models.FishingBooking.person))
+	subquery = subquery.join(models.Fishing)
+	subquery = subquery.filter(models.FishingBooking.date == search_date)
+	if harbor:
+		subquery = subquery.filter(models.Fishing.harbor.has(models.Harbor.name == harbor))
+	subquery = subquery.filter(models.FishingBooking.fishing_id == models.Fishing.id)
+	subquery = subquery.filter(models.Fishing.id == models.FishingMonth.fishing_id)
+	subquery = subquery.filter(models.FishingMonth.month == species_month_date)
+	subquery = subquery.group_by(models.Fishing.id)
+	subquery = subquery.correlate(models.FishingMonth)
 
-    available_seats = models.FishingMonth.maximum_seat - func.coalesce(subquery.scalar_subquery(), 0)
-    query = query.filter(available_seats > 0)
-    query = query.add_column(available_seats.label('available_seats'))
-    return query, available_seats
+	available_seats = models.FishingMonth.maximum_seat - func.coalesce(subquery.scalar_subquery(), 0)
+	if can_booking:
+		query = query.filter(available_seats >= available_seats_number)
+	query = query.add_column(available_seats.label('available_seats'))
+	return query, available_seats
 
 
 
@@ -96,8 +119,9 @@ async def read_fishing(
     dateYM: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-	today = datetime.today().date()
+	today = datetime.now(local_timezone).date()
 	dateYM = datetime.strptime(dateYM, '%Y%m').date() if dateYM is not None else today
+	print(today)
 	start_date = dateYM
 
 	next_month = dateYM.replace(day=1) + timedelta(days=32)

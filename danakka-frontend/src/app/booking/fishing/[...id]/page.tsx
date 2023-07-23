@@ -93,14 +93,20 @@ const BookingFishingDetail = () => {
 
     useEffect(() => {
         const fetchData = async () => {
-          const data = await getData<FishingData>(`/api/fishing/${id}/?dateYM=${SelectedDateYM}`, {});
-          if (data) {
-			const displayName = `[${data.fishing_objs.harbor.name}] ${data.fishing_objs.display_business_name}`
-			setDisplayName(displayName);
-            setFishingData(data);
-          } else {
-			setFishingData(undefined);
-		  }
+			const data = await getData<FishingData>(`/api/fishing/${id}/`,
+			{
+				'dateYM': SelectedDateYM
+			});
+
+			if (data) {
+				console.log(data)
+				const displayName = `[${data.fishing_objs.harbor.name}] ${data.fishing_objs.display_business_name}`
+				setDisplayName(displayName);
+				setFishingData(data);
+			} else {
+				setFishingData(undefined);
+			}
+
         };
       
         fetchData();
@@ -112,7 +118,7 @@ const BookingFishingDetail = () => {
 		current.set('dateYM', value);
 		setDateYM(value);
 		window.history.replaceState({}, '', `${window.location.pathname}?${current.toString()}`);
-	  }
+	}
 	  
 	  
 

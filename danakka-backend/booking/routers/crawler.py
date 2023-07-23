@@ -11,7 +11,9 @@ from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel
 from core.config import media_settings
+from util.timezone import get_local_timezone
 
+local_timezone = get_local_timezone()
 router = APIRouter()
 
 app_name = 'fishing'
@@ -38,7 +40,7 @@ async def create_sunsang24_crawled_fishing_data(
 
 	if thumbnail is not None:
 		contents = await thumbnail.read()
-		currentTime = datetime.now().strftime("%Y%m%d%H%M")
+		currentTime = datetime.now(local_timezone).strftime("%Y%m%d%H%M")
 
 		thumbnail_path = os.path.join(media_settings.IMG_DIR,currentTime)
 

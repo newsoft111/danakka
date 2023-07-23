@@ -9,9 +9,23 @@ const api = axios.create({
 
 
 
-export async function getData<T>(url: string, data: any): Promise<T | undefined> {
+export async function getData<T>(url: string, params: any): Promise<T | undefined> {
+  
   try {
-    const response = await api.get(url, data);
+    const removeEmptyParams = (obj: any) => {
+      const newObj: any = {};
+      Object.keys(obj).forEach((key) => {
+        if (obj[key] !== "") {
+          newObj[key] = obj[key];
+        }
+      });
+      return newObj;
+    };
+
+    const filteredParams = removeEmptyParams(params);
+    const queryString = new URLSearchParams(filteredParams).toString();
+
+    const response = await api.get(`${url}?${queryString}`);
     if (!response.data.error) {
       return response.data;
     }
@@ -22,9 +36,9 @@ export async function getData<T>(url: string, data: any): Promise<T | undefined>
   }
 }
 
-export async function postData<T>(url: string, data: any): Promise<T | undefined> {
+export async function postData<T>(url: string, params: any): Promise<T | undefined> {
   try {
-    const response = await api.post(url, data);
+    const response = await api.post(url, params);
     if (!response.data.error) {
       return response.data;
     }

@@ -9,13 +9,14 @@ import {
   Select,
   Button,
   Checkbox,
-  Stack,
+  Flex,
   Link,
 } from '@chakra-ui/react';
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import {getData} from '../../../util/Api'
 import {DateToStr} from '../../../util/DateFormat'
 import {DateToStrYM} from '../../../util/DateFormat'
+import { ScrollRestoration } from '../../../util/ScrollRestoration'
 
 const getYesterday = (): Date => {
     const today = new Date();
@@ -57,11 +58,13 @@ interface FishingMonth {
 	id: number;
 	maximum_seat: number;
 	fishing: Fishing;
+	fishing_species: []
 }
   
 interface Booking {
 	fishing_month: FishingMonth;
 	available_seats: number;
+	species_items: [string];
 }
   
 interface BookingObj {
@@ -79,6 +82,29 @@ const BookingFishingList = () => {
 	const [selectedSpeciesItem, setselectedSpeciesItem] = useState<string>('');
 	const [SelectedHarbor, setSelectedHarbor] = useState<string>('');
 	const [SelectedDate, setSelectedDate] = useState(new Date());
+	const [selectedAvailableSeats, setAvailableSeats] = useState<string>("1");
+	const [canBooking, setCanBooking] = useState<boolean>(true);
+	
+	useEffect( () => {
+		// 페이지 이동 후 저장되어 있던 위치로 스크롤 복원
+		const _scroll = sessionStorage.getItem(`__next_scroll_${window.history.state.idx}`);
+		if (_scroll) {
+			// 스크롤 복원 후 저장된 위치 제거
+			const { x, y } = JSON.parse(_scroll);
+			const currentX = window.scrollX;
+			const currentY = window.scrollY;
+			
+			if (currentY < y) {
+				window.scrollTo(0, document.body.scrollHeight);				
+			} else {
+				window.scrollTo(x, y);
+			}
+
+			if (currentX === x && currentY === y) sessionStorage.removeItem(`__next_scroll_${window.history.state.idx}`);
+
+			
+		}
+	})
 
 
 	const configs = {
@@ -94,7 +120,17 @@ const BookingFishingList = () => {
 		  try {
 			const date = DateToStr(SelectedDate);
 
-			const data = await getData<BookingObj>(`/api/fishing/list/?page=${currentPage}&fishing_type=${selectedFishingType}&species_item=${selectedSpeciesItem}&harbor=${SelectedHarbor}&date=${date}`, {});
+			const data = await getData<BookingObj>(`/api/fishing/list/`,
+			{
+				"page": currentPage,
+				"fishing_type": selectedFishingType,
+				'species_item': selectedSpeciesItem,
+				'harbor': SelectedHarbor,
+				'date': date,
+				'available_seats_number': selectedAvailableSeats,
+				'can_booking': canBooking
+
+			});
 			
 
 			if (data) {
@@ -103,7 +139,7 @@ const BookingFishingList = () => {
 					{ booking_objs: [...data.booking_objs], last_page: data.last_page },
 				]);
 				  
-				setLastPage(data.last_page);
+				setLastPage(data.last_page);	
 			}
 			setIsLoading(false);
 		  } catch (error) {
@@ -112,7 +148,7 @@ const BookingFishingList = () => {
 		};
 	  
 		fetchData();
-	}, [currentPage, selectedFishingType, selectedSpeciesItem, SelectedHarbor, SelectedDate]);
+	}, [currentPage, selectedFishingType, selectedSpeciesItem, SelectedHarbor, SelectedDate, selectedAvailableSeats, canBooking]);
 
 	const handleFishingTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
 		setSelectedFishingType(event.target.value);
@@ -137,6 +173,33 @@ const BookingFishingList = () => {
 		setCurrentPage(1); // selectedFishingType이 변경되면 currentPage를 1로 설정
 		setBookings([]); // bookings 배열 초기화
 	};
+
+
+	const handleAvailableSeatsChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+		setAvailableSeats(event.target.value);
+		setCanBooking(true);
+		setCurrentPage(1);
+		setBookings([]);
+	};
+
+	const handleCanBookingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const target = event.target as HTMLInputElement;
+		setCanBooking(target.checked);
+		setAvailableSeats(target.checked && selectedAvailableSeats === '' ? '1' : '');
+		
+		setCurrentPage(1);
+		setBookings([]);
+	};
+
+	const handleResetFilter = () => {
+		setselectedSpeciesItem('');
+		setSelectedHarbor('');
+		setSelectedDate(new Date());
+		setAvailableSeats("");
+		setCanBooking(true);
+		setCurrentPage(1);
+		setBookings([]);
+	};
   
 	const handleScroll = useCallback(() => {
 		if (
@@ -147,22 +210,20 @@ const BookingFishingList = () => {
 		) {
 		  setCurrentPage((prevPage) => prevPage + 1);
 		}
-	  }, [currentPage, lastPage, isLoading]);
+	}, [currentPage, lastPage, isLoading]);
 	  
-	  useEffect(() => {
+	useEffect(() => {
 		window.addEventListener("scroll", handleScroll);
 		return () => {
 		  window.removeEventListener("scroll", handleScroll);
 		};
 	}, [handleScroll]);
-	  
-	  
+
+	
   
 	return (
 		<React.Fragment>
-			<Box mb={4}>
-				<Stack direction={['column', 'row']} spacing='14px'>
-
+			<Flex mb={4} direction={{ base: "column", md: "row" }} gap={4}>
 					<Select 
 					placeholder='낚시종류' 
 					value={selectedFishingType}
@@ -199,26 +260,42 @@ const BookingFishingList = () => {
 						onDateChange={handleDateChange}
 					/>
 
-					<Select placeholder='인원'>
-						<option value='option1'>1명</option>
-						<option value='option2'>Option 2</option>
-						<option value='option3'>Option 3</option>
+					<Select
+						placeholder='인원'
+						onChange={handleAvailableSeatsChange}
+						value={selectedAvailableSeats}
+					>
+						<option value='1'>1명</option>
+						<option value='2'>2명</option>
+						<option value='3'>3명</option>
 					</Select>
 
-					<Checkbox defaultChecked flexShrink={0}>예약가능</Checkbox>
+					<Checkbox
+						isChecked={canBooking}
+						flexShrink={0}
+						onChange={handleCanBookingChange}
+					>
+						예약가능
+					</Checkbox>
 					
-					<Button colorScheme='teal' flexShrink={0} size='md'>
+					<Button
+						colorScheme='teal'
+						flexShrink={0}
+						size='md'
+						onClick={handleResetFilter}
+					>
 						초기화
 					</Button>
-					
-				</Stack >
-			</Box>
-			<SimpleGrid columns={[2, 3, 4, 5]} spacing={10}>
+
+			</Flex>
+			<SimpleGrid columns={{ base: 2, md: 3, lg: 5 }} spacing={10}>
 			{bookings.map((bookingObj) =>
 				bookingObj.booking_objs.map((booking, index) => (
 				<Link
+				onClick={ScrollRestoration}
 				as={NextLink}
 				href={`/booking/fishing/${booking.fishing_month.fishing.id}?dateYM=${DateToStrYM(SelectedDate)}`} key={index}
+
 				>
 					<Box
 						maxW='sm'
@@ -233,19 +310,25 @@ const BookingFishingList = () => {
 						/>
 				
 						<Box p='6'>
-							<Box display='flex' alignItems='baseline'>
-								<Badge borderRadius='full' px='2' colorScheme='teal'>
-								New
-								</Badge>
+							<Box display={{ base: 'block', xl: 'flex' }} alignItems='baseline'>
+								{booking.available_seats > 0 ? (
+									<Badge borderRadius='full' px="2" colorScheme='teal'>
+										예약가능
+									</Badge>
+								) : (
+									<Badge borderRadius='full' px="2" colorScheme='red'>
+										예약불가능
+									</Badge>
+								)}
 								<Box
 								color='gray.500'
 								fontWeight='semibold'
 								letterSpacing='wide'
 								fontSize='xs'
 								textTransform='uppercase'
-								ml='2'
+								ml={{ base: '0', xl: '2' }}
 								>
-								3 beds &bull; 2 baths
+								남은자리 : {booking.available_seats}명
 								</Box>
 							</Box>
 					
@@ -255,14 +338,19 @@ const BookingFishingList = () => {
 								as='h4'
 								lineHeight='tight'
 							>
-								[{booking.fishing_month.fishing.harbor.name}] {booking.fishing_month.fishing.display_business_name}
+								[{booking.fishing_month.fishing.harbor.name}]
 							</Box>
+							<Box
+								fontWeight='semibold'
+								as='h4'
+								lineHeight='tight'
+							>
+								{booking.fishing_month.fishing.display_business_name}
+							</Box>
+
 					
-							<Box>
-								123123
-								<Box as='span' color='gray.600' fontSize='sm'>
-								/ wk
-								</Box>
+							<Box mt='1'>
+								어종 : {booking.species_items.join(",")}
 							</Box>
 					
 							
