@@ -6,7 +6,7 @@ import { Box, Image, Badge, SimpleGrid, Select, Button, Checkbox, Flex, Link } f
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import { getData } from '../../../util/Api'
 import { DateToStr, DateToStrYM } from '../../../util/DateFormat'
-import { ScrollRestoration } from '../../../util/ScrollRestoration'
+import { useScrollRestoration } from '../../../hook/useScrollRestoration'
 
 const getYesterday = (): Date => {
     const today = new Date();
@@ -57,19 +57,11 @@ interface Booking {
 	species_items: [string];
 }
 
-interface Params {
-	date: string;
-	fishing_type: string;
-	species_item: string;
-	harbor: string;
-	available_seats_number: number;
-	can_booking: boolean;
-}
+
 interface BookingObj {
 	booking_objs: Booking[];
 	last_page: number;
 	current_page: number;
-	params: Params[];
 }
   
 
@@ -80,7 +72,7 @@ const BookingFishingList = () => {
 	const [SelectedDate, setSelectedDate] = useState(new Date());
 	const [selectedAvailableSeats, setAvailableSeats] = useState<string>("1");
 	const [canBooking, setCanBooking] = useState<boolean>(true);
-	const scrollRestoration = new ScrollRestoration();
+	const scrollRestoration = new useScrollRestoration();
 	
 	useEffect( () => {
 		scrollRestoration.getPosition();
@@ -124,7 +116,7 @@ const BookingFishingList = () => {
 				return false;
 			},
 	});
-	console.log(data)
+	
 
 	const bookings = data?.pages.flatMap((page) => page?.booking_objs) || [];
 
@@ -177,22 +169,69 @@ const BookingFishingList = () => {
 		handleClearData();
 		window.scrollTo({top: 0});
 	};
-  
-	const handleScroll = useCallback(() => {
-		if (
-		  window.innerHeight + document.documentElement.scrollTop ===
-			document.documentElement.offsetHeight
-		) {
-			fetchNextPage();
+
+	const saveFilterDataToLocalStorage = () => {
+		const filterData = {
+		  selectedFishingType,
+		  selectedSpeciesItem,
+		  SelectedHarbor,
+		  SelectedDate: SelectedDate.toISOString(), // Convert date to string for storage
+		  selectedAvailableSeats,
+		  canBooking,
+		};
+		localStorage.setItem("filterData", JSON.stringify(filterData));
+	  };
+	
+	  // Function to load the filter data from local storage
+	  const loadFilterDataFromLocalStorage = () => {
+		const storedFilterData = localStorage.getItem("filterData");
+		if (storedFilterData) {
+		  const filterData = JSON.parse(storedFilterData);
+		  setSelectedFishingType(filterData.selectedFishingType);
+		  setselectedSpeciesItem(filterData.selectedSpeciesItem);
+		  setSelectedHarbor(filterData.SelectedHarbor);
+		  setSelectedDate(new Date(filterData.SelectedDate));
+		  setAvailableSeats(filterData.selectedAvailableSeats);
+		  setCanBooking(filterData.canBooking);
 		}
-	}, []);
+	  };
+	
+	  // Load filter data from local storage when the component mounts
+	  useEffect(() => {
+		loadFilterDataFromLocalStorage();
+	  }, []);
+	
+	  // Save filter data to local storage whenever the filters change
+	  useEffect(() => {
+		saveFilterDataToLocalStorage();
+	  }, [
+		selectedFishingType,
+		selectedSpeciesItem,
+		SelectedHarbor,
+		SelectedDate,
+		selectedAvailableSeats,
+		canBooking,
+	  ]);
+  
+	  const handleScroll = useCallback(() => {
+		if (hasNextPage && !isFetchingNextPage) {
+		  // Check if there is more data to fetch and no fetch process is ongoing
+		  if (
+			window.innerHeight + document.documentElement.scrollTop ===
+			document.documentElement.offsetHeight
+		  ) {
+			fetchNextPage();
+		  }
+		}
+	  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 	  
-	useEffect(() => {
+	  useEffect(() => {
 		window.addEventListener("scroll", handleScroll);
 		return () => {
 		  window.removeEventListener("scroll", handleScroll);
 		};
 	}, [handleScroll]);
+	  
 
 	
   
@@ -264,78 +303,81 @@ const BookingFishingList = () => {
 
 			</Flex>
 			<SimpleGrid columns={{ base: 2, md: 3, lg: 5 }} spacing={10}>
-			{bookings.map((booking, index) =>
-				
-				<Link
-				onClick={scrollRestoration.setPosition}
-				as={NextLink}
-				href={`/booking/fishing/${booking.fishing_month.fishing.id}?dateYM=${DateToStrYM(SelectedDate)}`} key={index}
+			{bookings.map((booking, index) => {
+				if (booking) {
+					return (
 
-				>
-					<Box
-						maxW='sm'
-						borderWidth='1px'
-						borderRadius='lg'
-						overflow='hidden'
-					>
-						<Image 
-						w="100%"
-						src={`http://newsoft.kr:8500${booking.fishing_month.fishing.thumbnail}`}
-						alt=''
-						/>
-				
-						<Box p='6'>
-							<Box display={{ base: 'block', xl: 'flex' }} alignItems='baseline'>
-								{booking.available_seats > 0 ? (
-									<Badge borderRadius='full' px="2" colorScheme='teal'>
-										예약가능
-									</Badge>
-								) : (
-									<Badge borderRadius='full' px="2" colorScheme='red'>
-										예약불가능
-									</Badge>
-								)}
-								<Box
-								color='gray.500'
-								fontWeight='semibold'
-								letterSpacing='wide'
-								fontSize='xs'
-								textTransform='uppercase'
-								ml={{ base: '0', xl: '2' }}
-								>
-								남은자리 : {booking.available_seats}명
-								</Box>
-							</Box>
-					
-							<Box
-								mt='1'
-								fontWeight='semibold'
-								as='h4'
-								lineHeight='tight'
-							>
-								[{booking.fishing_month.fishing.harbor.name}]
-							</Box>
-							<Box
-								fontWeight='semibold'
-								as='h4'
-								lineHeight='tight'
-							>
-								{booking.fishing_month.fishing.display_business_name}
-							</Box>
+						<Link
+						onClick={scrollRestoration.setPosition}
+						as={NextLink}
+						href={`/booking/fishing/${booking.fishing_month.fishing.id}?dateYM=${DateToStrYM(SelectedDate)}`} key={index}
 
-					
-							<Box mt='1'>
-								어종 : {booking.species_items.join(",")}
-							</Box>
-					
-							
-						</Box>
+						>
+							<Box
+								maxW='sm'
+								borderWidth='1px'
+								borderRadius='lg'
+								overflow='hidden'
+							>
+								<Image 
+								w="100%"
+								src={`http://newsoft.kr:8500${booking.fishing_month.fishing.thumbnail}`}
+								alt=''
+								/>
 						
+								<Box p='6'>
+									<Box display={{ base: 'block', xl: 'flex' }} alignItems='baseline'>
+										{booking.available_seats > 0 ? (
+											<Badge borderRadius='full' px="2" colorScheme='teal'>
+												예약가능
+											</Badge>
+										) : (
+											<Badge borderRadius='full' px="2" colorScheme='red'>
+												예약불가능
+											</Badge>
+										)}
+										<Box
+										color='gray.500'
+										fontWeight='semibold'
+										letterSpacing='wide'
+										fontSize='xs'
+										textTransform='uppercase'
+										ml={{ base: '0', xl: '2' }}
+										>
+										남은자리 : {booking.available_seats}명
+										</Box>
+									</Box>
+							
+									<Box
+										mt='1'
+										fontWeight='semibold'
+										as='h4'
+										lineHeight='tight'
+									>
+										[{booking.fishing_month.fishing.harbor.name}]
+									</Box>
+									<Box
+										fontWeight='semibold'
+										as='h4'
+										lineHeight='tight'
+									>
+										{booking.fishing_month.fishing.display_business_name}
+									</Box>
 
-					</Box>
-				</Link>
-				
-			)}
+							
+									<Box mt='1'>
+										어종 : {booking.species_items.join(",")}
+									</Box>
+							
+									
+								</Box>
+								
+
+							</Box>
+						</Link>
+					)
+				}
+			})}
 			</SimpleGrid>
 		</React.Fragment>
 	)

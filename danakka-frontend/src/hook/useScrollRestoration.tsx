@@ -1,4 +1,4 @@
-export class ScrollRestoration  {
+export class useScrollRestoration  {
 
 	getPosition() {
     	// 페이지 이동 후 저장되어 있던 위치로 스크롤 복원
