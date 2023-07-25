@@ -70,6 +70,7 @@ async def read_all_fishing(
         }
         for fishing_month, available_seats in fishing_months_with_available_seats
     ],
+    "current_page": page,
     "last_page": total_count // per_page + 1,
 }
 

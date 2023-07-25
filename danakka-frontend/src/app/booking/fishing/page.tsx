@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useEffect, useCallback } from "react";
+import { useInfiniteQuery  } from '@tanstack/react-query'
 import NextLink from 'next/link'
 import {
   Box,
@@ -11,6 +12,7 @@ import {
   Checkbox,
   Flex,
   Link,
+  layout,
 } from '@chakra-ui/react';
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
 import {getData} from '../../../util/Api'
@@ -75,9 +77,6 @@ interface BookingObj {
 
 const BookingFishingList = () => {
 	const [currentPage, setCurrentPage] = useState<number>(1);
-	const [lastPage, setLastPage] = useState<number>(1); // add this line
-	const [bookings, setBookings] = useState<BookingObj[]>([]);
-	const [isLoading, setIsLoading] = useState<boolean>(false);
 	const [selectedFishingType, setSelectedFishingType] = useState<string>('');
 	const [selectedSpeciesItem, setselectedSpeciesItem] = useState<string>('');
 	const [SelectedHarbor, setSelectedHarbor] = useState<string>('');
@@ -112,66 +111,57 @@ const BookingFishingList = () => {
 		dayNames: '월화수목금토일'.split(''),
 		monthNames: '1월 2월 3월 4월 5월 6월 7월 8월 9월 10월 11월 12월'.split(' '),
 	};
+
+	const fetchFishingData = async ({ pageParam = 1 }) => {
+		const date = DateToStr(SelectedDate);
+		const data = await getData<BookingObj>('/api/fishing/list/', {
+		  page: pageParam,
+		  fishing_type: selectedFishingType,
+		  species_item: selectedSpeciesItem,
+		  harbor: SelectedHarbor,
+		  date,
+		  available_seats_number: selectedAvailableSeats,
+		  can_booking: canBooking,
+		});
+		return data;
+	};
+
+	// React Query hook for infinite scroll
+	const {
+		data,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		error,
+	} = useInfiniteQuery(["fishingList"], fetchFishingData, {
+			getNextPageParam: (lastPage, allPages) => {
+				const last_page = lastPage.last_page;
+				console.log(last_page);
+				return 1;
+			},
+	});
+
+	const bookings = data?.pages.flatMap((page) => page.booking_objs) || [];
   
-	useEffect(() => {
-		const fetchData = async () => {
-		  setIsLoading(true);
-	  
-		  try {
-			const date = DateToStr(SelectedDate);
-
-			const data = await getData<BookingObj>(`/api/fishing/list/`,
-			{
-				"page": currentPage,
-				"fishing_type": selectedFishingType,
-				'species_item': selectedSpeciesItem,
-				'harbor': SelectedHarbor,
-				'date': date,
-				'available_seats_number': selectedAvailableSeats,
-				'can_booking': canBooking
-
-			});
-			
-
-			if (data) {
-				setBookings((prevBookings) => [
-					...prevBookings,
-					{ booking_objs: [...data.booking_objs], last_page: data.last_page },
-				]);
-				  
-				setLastPage(data.last_page);	
-			}
-			setIsLoading(false);
-		  } catch (error) {
-			console.error(error);
-		  }
-		};
-	  
-		fetchData();
-	}, [currentPage, selectedFishingType, selectedSpeciesItem, SelectedHarbor, SelectedDate, selectedAvailableSeats, canBooking]);
 
 	const handleFishingTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
 		setSelectedFishingType(event.target.value);
 		setCurrentPage(1); // selectedFishingType이 변경되면 currentPage를 1로 설정
-		setBookings([]); // bookings 배열 초기화
 	};
 
 	const handleSpeciesItemChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
 		setselectedSpeciesItem(event.target.value);
 		setCurrentPage(1); // selectedFishingType이 변경되면 currentPage를 1로 설정
-		setBookings([]); // bookings 배열 초기화
 	};
 
 	const handleHarborChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
 		setSelectedHarbor(event.target.value);
 		setCurrentPage(1); // selectedFishingType이 변경되면 currentPage를 1로 설정
-		setBookings([]); // bookings 배열 초기화
 	};
 
 	const handleDateChange = (selectedDate: Date) => {
 		setSelectedDate(selectedDate);
 		setCurrentPage(1); // selectedFishingType이 변경되면 currentPage를 1로 설정
-		setBookings([]); // bookings 배열 초기화
 	};
 
 
@@ -179,7 +169,6 @@ const BookingFishingList = () => {
 		setAvailableSeats(event.target.value);
 		setCanBooking(true);
 		setCurrentPage(1);
-		setBookings([]);
 	};
 
 	const handleCanBookingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -188,7 +177,6 @@ const BookingFishingList = () => {
 		setAvailableSeats(target.checked && selectedAvailableSeats === '' ? '1' : '');
 		
 		setCurrentPage(1);
-		setBookings([]);
 	};
 
 	const handleResetFilter = () => {
@@ -198,19 +186,17 @@ const BookingFishingList = () => {
 		setAvailableSeats("");
 		setCanBooking(true);
 		setCurrentPage(1);
-		setBookings([]);
 	};
   
 	const handleScroll = useCallback(() => {
 		if (
 		  window.innerHeight + document.documentElement.scrollTop ===
-			document.documentElement.offsetHeight &&
-		  currentPage < lastPage &&
-		  !isLoading
+			document.documentElement.offsetHeight
 		) {
-		  setCurrentPage((prevPage) => prevPage + 1);
+			console.log(123123)
+			fetchNextPage();
 		}
-	}, [currentPage, lastPage, isLoading]);
+	}, []);
 	  
 	useEffect(() => {
 		window.addEventListener("scroll", handleScroll);
@@ -289,8 +275,8 @@ const BookingFishingList = () => {
 
 			</Flex>
 			<SimpleGrid columns={{ base: 2, md: 3, lg: 5 }} spacing={10}>
-			{bookings.map((bookingObj) =>
-				bookingObj.booking_objs.map((booking, index) => (
+			{bookings.map((booking, index) =>
+				
 				<Link
 				onClick={ScrollRestoration}
 				as={NextLink}
@@ -360,8 +346,7 @@ const BookingFishingList = () => {
 					</Box>
 				</Link>
 				
-				))
-  			)}
+			)}
 			</SimpleGrid>
 		</React.Fragment>
 	)
