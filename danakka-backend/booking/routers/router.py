@@ -32,7 +32,7 @@ async def read_all_fishing(
 		
 	today = datetime.now(local_timezone).date()
 
-	date = datetime.strptime(date, '%Y-%m-%d') if date is not None else today
+	date = datetime.strptime(date, '%Y-%m-%d').date() if date is not None else today
 
 
 	per_page = 15

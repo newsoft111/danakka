@@ -56,11 +56,20 @@ interface Booking {
 	available_seats: number;
 	species_items: [string];
 }
-  
+
+interface Params {
+	date: string;
+	fishing_type: string;
+	species_item: string;
+	harbor: string;
+	available_seats_number: number;
+	can_booking: boolean;
+}
 interface BookingObj {
 	booking_objs: Booking[];
 	last_page: number;
 	current_page: number;
+	params: Params[];
 }
   
 
@@ -109,6 +118,7 @@ const BookingFishingList = () => {
 	} = useInfiniteQuery(["bookingFishingList"], fetchFishingData, {
 			getNextPageParam: (lastPage, allPages) => {
 				const current_page = lastPage?.current_page ?? 1;
+				console.log(lastPage);
 				if (lastPage?.last_page !== current_page) return current_page + 1;
 
 				return false;
