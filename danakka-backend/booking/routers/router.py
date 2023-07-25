@@ -72,6 +72,14 @@ async def read_all_fishing(
     ],
     "current_page": page,
     "last_page": total_count // per_page + 1,
+	"params": {
+		"date": date if date is not None else '',
+		"fishing_type": fishing_type if fishing_type is not None else '',
+		"species_item": species_item if species_item is not None else '',
+		"harbor": harbor if harbor is not None else '',
+        "available_seats_number": available_seats_number if available_seats_number is not None else 1,
+        "can_booking": can_booking if can_booking is not None else True,
+	}
 }
 
 def create_fishing_month_query(db: Session, species_month_date: str, fishing_type: Optional[str], harbor: Optional[str]):
