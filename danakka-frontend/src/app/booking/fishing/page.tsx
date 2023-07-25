@@ -1,23 +1,11 @@
 'use client'
 import React, { useState, useEffect, useCallback } from "react";
-import { useInfiniteQuery  } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import NextLink from 'next/link'
-import {
-  Box,
-  Image,
-  Badge,
-  SimpleGrid,
-  Select,
-  Button,
-  Checkbox,
-  Flex,
-  Link,
-  layout,
-} from '@chakra-ui/react';
+import { Box, Image, Badge, SimpleGrid, Select, Button, Checkbox, Flex, Link } from '@chakra-ui/react';
 import { SingleDatepicker } from "chakra-dayzed-datepicker";
-import {getData} from '../../../util/Api'
-import {DateToStr} from '../../../util/DateFormat'
-import {DateToStrYM} from '../../../util/DateFormat'
+import { getData } from '../../../util/Api'
+import { DateToStr, DateToStrYM } from '../../../util/DateFormat'
 import { ScrollRestoration } from '../../../util/ScrollRestoration'
 
 const getYesterday = (): Date => {
@@ -72,37 +60,21 @@ interface Booking {
 interface BookingObj {
 	booking_objs: Booking[];
 	last_page: number;
+	current_page: number;
 }
   
 
 const BookingFishingList = () => {
-	const [currentPage, setCurrentPage] = useState<number>(1);
 	const [selectedFishingType, setSelectedFishingType] = useState<string>('');
 	const [selectedSpeciesItem, setselectedSpeciesItem] = useState<string>('');
 	const [SelectedHarbor, setSelectedHarbor] = useState<string>('');
 	const [SelectedDate, setSelectedDate] = useState(new Date());
 	const [selectedAvailableSeats, setAvailableSeats] = useState<string>("1");
 	const [canBooking, setCanBooking] = useState<boolean>(true);
+	const scrollRestoration = new ScrollRestoration();
 	
 	useEffect( () => {
-		// 페이지 이동 후 저장되어 있던 위치로 스크롤 복원
-		const _scroll = sessionStorage.getItem(`__next_scroll_${window.history.state.idx}`);
-		if (_scroll) {
-			// 스크롤 복원 후 저장된 위치 제거
-			const { x, y } = JSON.parse(_scroll);
-			const currentX = window.scrollX;
-			const currentY = window.scrollY;
-			
-			if (currentY < y) {
-				window.scrollTo(0, document.body.scrollHeight);				
-			} else {
-				window.scrollTo(x, y);
-			}
-
-			if (currentX === x && currentY === y) sessionStorage.removeItem(`__next_scroll_${window.history.state.idx}`);
-
-			
-		}
+		scrollRestoration.getPosition();
 	})
 
 
@@ -129,54 +101,61 @@ const BookingFishingList = () => {
 	// React Query hook for infinite scroll
 	const {
 		data,
+		error,
 		fetchNextPage,
 		hasNextPage,
 		isFetchingNextPage,
-		error,
-	} = useInfiniteQuery(["fishingList"], fetchFishingData, {
+		status,
+	} = useInfiniteQuery(["bookingFishingList"], fetchFishingData, {
 			getNextPageParam: (lastPage, allPages) => {
-				const last_page = lastPage.last_page;
-				console.log(last_page);
-				return 1;
+				const current_page = lastPage?.current_page ?? 1;
+				if (lastPage?.last_page !== current_page) return current_page + 1;
+
+				return false;
 			},
 	});
+	console.log(data)
 
-	const bookings = data?.pages.flatMap((page) => page.booking_objs) || [];
-  
+	const bookings = data?.pages.flatMap((page) => page?.booking_objs) || [];
+
+	const queryClient = useQueryClient();
+
+	const handleClearData = () => {
+		queryClient.clear();
+	};
 
 	const handleFishingTypeChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
 		setSelectedFishingType(event.target.value);
-		setCurrentPage(1); // selectedFishingType이 변경되면 currentPage를 1로 설정
+		handleClearData();
 	};
 
 	const handleSpeciesItemChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
 		setselectedSpeciesItem(event.target.value);
-		setCurrentPage(1); // selectedFishingType이 변경되면 currentPage를 1로 설정
+		handleClearData();
 	};
 
 	const handleHarborChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
 		setSelectedHarbor(event.target.value);
-		setCurrentPage(1); // selectedFishingType이 변경되면 currentPage를 1로 설정
+		handleClearData();
 	};
 
 	const handleDateChange = (selectedDate: Date) => {
 		setSelectedDate(selectedDate);
-		setCurrentPage(1); // selectedFishingType이 변경되면 currentPage를 1로 설정
+		handleClearData();
 	};
 
 
 	const handleAvailableSeatsChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
 		setAvailableSeats(event.target.value);
 		setCanBooking(true);
-		setCurrentPage(1);
+		handleClearData();
 	};
 
 	const handleCanBookingChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const target = event.target as HTMLInputElement;
 		setCanBooking(target.checked);
 		setAvailableSeats(target.checked && selectedAvailableSeats === '' ? '1' : '');
-		
-		setCurrentPage(1);
+		handleClearData();
 	};
 
 	const handleResetFilter = () => {
@@ -185,7 +164,8 @@ const BookingFishingList = () => {
 		setSelectedDate(new Date());
 		setAvailableSeats("");
 		setCanBooking(true);
-		setCurrentPage(1);
+		handleClearData();
+		window.scrollTo({top: 0});
 	};
   
 	const handleScroll = useCallback(() => {
@@ -193,7 +173,6 @@ const BookingFishingList = () => {
 		  window.innerHeight + document.documentElement.scrollTop ===
 			document.documentElement.offsetHeight
 		) {
-			console.log(123123)
 			fetchNextPage();
 		}
 	}, []);
@@ -278,7 +257,7 @@ const BookingFishingList = () => {
 			{bookings.map((booking, index) =>
 				
 				<Link
-				onClick={ScrollRestoration}
+				onClick={scrollRestoration.setPosition}
 				as={NextLink}
 				href={`/booking/fishing/${booking.fishing_month.fishing.id}?dateYM=${DateToStrYM(SelectedDate)}`} key={index}
 
