@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
 import {
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalFooter,
-  ModalBody,
-  ModalCloseButton,
-  FormControl,
-  FormLabel,
-  Input,
-  Button,
+	Modal,
+	ModalOverlay,
+	ModalContent,
+	ModalHeader,
+	ModalFooter,
+	ModalBody,
+	ModalCloseButton,
+	FormControl,
+	FormLabel,
+	Input,
+	Button,
+	Alert as ChakraAlert,
+	AlertIcon,
+	AlertTitle,
+	AlertDescription,
 } from '@chakra-ui/react';
 import {postData} from '../../util/Api'
+import Alert from '../Common/Alert'
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -57,42 +62,44 @@ const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalOverlay />
-      <ModalContent>
-        <ModalHeader>로그인</ModalHeader>
-        <ModalCloseButton />
-        <ModalBody pb={6}>
-          <FormControl>
-            <FormLabel>이메일/전화번호</FormLabel>
-            <Input
-              placeholder="이메일/전화번호"
-              value={emailOrPhoneNumber}
-              onChange={(e) => setEmailOrPhoneNumber(e.target.value)}
-            />
-          </FormControl>
+	<>
+		<Modal isOpen={isOpen} onClose={onClose}>
+		<ModalOverlay />
+		<ModalContent>
+			<ModalHeader>로그인</ModalHeader>
+			<ModalCloseButton />
+			<ModalBody pb={6}>
+			<FormControl>
+				<FormLabel>이메일/전화번호</FormLabel>
+				<Input
+				placeholder="이메일/전화번호"
+				value={emailOrPhoneNumber}
+				onChange={(e) => setEmailOrPhoneNumber(e.target.value)}
+				/>
+			</FormControl>
 
-          <FormControl mt={4}>
-            <FormLabel>비밀번호</FormLabel>
-            <Input
-              type="password"
-              placeholder="비밀번호"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </FormControl>
-        </ModalBody>
+			<FormControl mt={4}>
+				<FormLabel>비밀번호</FormLabel>
+				<Input
+				type="password"
+				placeholder="비밀번호"
+				value={password}
+				onChange={(e) => setPassword(e.target.value)}
+				/>
+			</FormControl>
+			</ModalBody>
 
-        <ModalFooter>
-          <Button onClick={openJoinModal} mr={3}>
-            회원가입
-          </Button>
-          <Button colorScheme="blue" onClick={handleLogin}>
-            완료
-          </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+			<ModalFooter>
+			<Button onClick={openJoinModal} mr={3}>
+				회원가입
+			</Button>
+			<Button colorScheme="blue" onClick={handleLogin}>
+				완료
+			</Button>
+			</ModalFooter>
+		</ModalContent>
+		</Modal>
+	</>
   );
 };
 

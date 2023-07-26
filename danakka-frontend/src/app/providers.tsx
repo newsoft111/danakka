@@ -8,6 +8,7 @@ import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
 import CenterSnipper from "../components/Common/CenterSnipper";
 
+
 export function Providers({ 
     children 
   }: { 
@@ -35,6 +36,9 @@ export function Providers({
 			</Box>
 			)}
 			<Footer />
+
+			
+
 		</ChakraProvider>
 		</CacheProvider>
 		<ReactQueryDevtools initialIsOpen={false} />
