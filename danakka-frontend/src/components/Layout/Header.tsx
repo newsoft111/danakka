@@ -12,23 +12,25 @@ import {
   MenuItem,
   MenuDivider,
   Link,
-  useColorMode
+  useColorMode,
+  useToast
 } from '@chakra-ui/react';
 import { FiBell, FiMenu, FiMoon, FiSun, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
 import JoinModal from '../Authentication/JoinModal';
 import { VerifyToken, Logout } from '../../util/Authentication'; // verifyToken 함수 임포트
 import NextLink from 'next/link';
-import Alert from '../Common/Alert';
+
+
 
 const Header = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { toggleColorMode, colorMode } = useColorMode();
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [isFailure, setIsFailure] = useState(false);
+
+
+  const toast = useToast()
 
   const openLoginModal = () => {
     setIsLoginModalOpen(true);
@@ -49,10 +51,6 @@ const Header = () => {
   };
 
   const handleLoginSuccess = () => {
-    setIsLoggedIn(true);
-    setIsSuccess(true); // 로그인 성공시 isSuccess를 true로 설정
-    setIsFailure(false); // 실패 상태 초기화
-    setIsAlertOpen(true); // 알림 표시
     closeLoginModal(); // 로그인 모달 닫기
   };
 
@@ -61,38 +59,28 @@ const Header = () => {
       try {
         const user = await VerifyToken();
         setIsLoggedIn(!!user);
+		toast({
+			title: `로그인 성공!`,
+			position: 'top',
+			status: 'success',
+			isClosable: true,
+		})
       } catch (error) {
         setIsLoggedIn(false);
+		toast({
+			title: `로그인 실패!`,
+			position: 'top',
+			status: 'success',
+			isClosable: true,
+		})
       }
     })();
   }, []);
 
-  useEffect(() => {
-    if (isAlertOpen) {
-      // Automatically close the alert after 3 seconds
-      const timeoutId = setTimeout(() => {
-        setIsAlertOpen(false); // 알림 닫기
-      }, 3000);
-
-      // Cleanup the timer on unmount or if the description changes
-      return () => clearTimeout(timeoutId);
-    }
-  }, [isAlertOpen]);
 
 
   return (
 	<>
-		{isAlertOpen && (
-			<>
-				{isSuccess && (
-					<Alert status="success" description="로그인에 성공했습니다." />
-				)}
-				{isFailure && (
-					<Alert status="error" description="로그인에 실패했습니다." />
-				)}
-			</>
-		)}
-
 		<Flex
 			as="header"
 			align="center"

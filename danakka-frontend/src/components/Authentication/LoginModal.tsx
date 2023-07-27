@@ -11,13 +11,9 @@ import {
 	FormLabel,
 	Input,
 	Button,
-	Alert as ChakraAlert,
-	AlertIcon,
-	AlertTitle,
-	AlertDescription,
+
 } from '@chakra-ui/react';
 import {postData} from '../../util/Api'
-import Alert from '../Common/Alert'
 
 interface LoginModalProps {
   isOpen: boolean;
