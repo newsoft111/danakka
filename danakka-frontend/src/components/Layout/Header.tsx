@@ -13,7 +13,7 @@ import {
   MenuDivider,
   Link,
   useColorMode,
-  useToast
+  
 } from '@chakra-ui/react';
 import { FiBell, FiMenu, FiMoon, FiSun, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
@@ -30,7 +30,7 @@ const Header = () => {
   const { toggleColorMode, colorMode } = useColorMode();
 
 
-  const toast = useToast()
+ 
 
   const openLoginModal = () => {
     setIsLoginModalOpen(true);
@@ -51,6 +51,7 @@ const Header = () => {
   };
 
   const handleLoginSuccess = () => {
+	setIsLoggedIn(true); // 로그인 성공시 isLoggedIn을 true로 설정
     closeLoginModal(); // 로그인 모달 닫기
   };
 
@@ -59,23 +60,13 @@ const Header = () => {
       try {
         const user = await VerifyToken();
         setIsLoggedIn(!!user);
-		toast({
-			title: `로그인 성공!`,
-			position: 'top',
-			status: 'success',
-			isClosable: true,
-		})
+		
       } catch (error) {
         setIsLoggedIn(false);
-		toast({
-			title: `로그인 실패!`,
-			position: 'top',
-			status: 'success',
-			isClosable: true,
-		})
+		
       }
     })();
-  }, []);
+  }, [isLoggedIn]);
 
 
 

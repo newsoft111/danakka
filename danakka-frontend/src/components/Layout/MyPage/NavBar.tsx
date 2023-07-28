@@ -1,48 +1,75 @@
 import {
 	Card,
-	Center,
-	Heading,
-	CardBody, 
-	Box,
 	Stack,
+	Flex,
+	CardBody, 
+	Link,
 	StackDivider,
 	Text,
 	Grid,
 	GridItem,
-	useMediaQuery,
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
+	HStack,
+	Box,
 	Hide,
-	Show
+	useColorModeValue
 } from '@chakra-ui/react';
-import MyPageMobileNav from "./MobileNav"
-import MyPageDesktopNav from "./DesktopNav"
 import ProfileCard from "./ProfileCard"
+import NextLink from 'next/link'
 
-interface NavItem {
-	label: string;
-	href: string;
-}
 
-const NAV_ITEMS: Array<NavItem> = [
-	{
-		label: '대시보드',
-		href: '/mypage'
-	},
-	{
-		label: '내프로필',
-		href: '/mypage/profile'
-	},
-	{
-		label: '보안설정',
-		href: '/mypage/security'
-	},
-	{
-		label: '티켓관리',
-		href: '/mypage/ticket'
+
+const HorizontalMenu = () => {
+	interface NavItem {
+		label: string;
+		href: string;
 	}
-];
+	
+	const NAV_ITEMS: Array<NavItem> = [
+		{
+			label: '대시보드',
+			href: '/mypage'
+		},
+		{
+			label: '내프로필',
+			href: '/mypage/profile'
+		},
+		{
+			label: '보안설정',
+			href: '/mypage/security'
+		},
+		{
+			label: '티켓관리',
+			href: '/mypage/ticket'
+		}
+	];
+
+	const linkColor = useColorModeValue('gray.600', 'gray.200');
+	const linkHoverColor = useColorModeValue('gray.800', 'white');
+  
+	return (
+	  	<HStack spacing={4} overflowX="auto">
+			{NAV_ITEMS.map((navItem) => (
+
+					<Link
+						flexShrink="0"
+						as={NextLink}
+						href={navItem.href}
+						p={2}
+						fontSize={'sm'}
+						fontWeight={500}
+						color={linkColor}
+						_hover={{
+							textDecoration: 'none',
+							color: linkHoverColor,
+						}}
+					>
+						<Text fontWeight={600}>{navItem.label}</Text>
+					</Link>
+
+			))}
+	  	</HStack>
+	);
+};
 
 
 const MyPageNavBar = ({ children }: { children: React.ReactNode }) => {
@@ -52,28 +79,22 @@ const MyPageNavBar = ({ children }: { children: React.ReactNode }) => {
 			gap={4}
 			>
 			<GridItem colSpan={1}>
-				<Show below='lg'>
-					<Center>
-						{NAV_ITEMS.map((navItem) => (
-							<MyPageMobileNav key={navItem.label} {...navItem}/>
-						))}
-					</Center>
-				</Show>
 
 				<Hide below='lg'>
 					<ProfileCard/>
-					<Card mt={4}>
-						<CardBody>
-							{NAV_ITEMS.map((navItem) => (
-								<MyPageDesktopNav key={navItem.label} {...navItem}/>
-							))}
-						</CardBody>
-					</Card>
 				</Hide>
 
 			</GridItem>
 
 			<GridItem colSpan={3}>
+				<Card mb={4}>
+					<CardBody>
+						<Flex>
+							<HorizontalMenu/>
+						</Flex >
+					</CardBody>
+				</Card>
+				
 				{children}
 			</GridItem>
 		</Grid>

@@ -11,7 +11,7 @@ import {
 	FormLabel,
 	Input,
 	Button,
-
+	useToast,
 } from '@chakra-ui/react';
 import {postData} from '../../util/Api'
 
@@ -32,71 +32,95 @@ const LoginModal: React.FC<LoginModalProps> = ({
   openJoinModal,
   onLoginSuccess, // onLoginSuccess 핸들러 추가
 }) => {
-  const [emailOrPhoneNumber, setEmailOrPhoneNumber] = useState('');
-  const [password, setPassword] = useState('');
+	const toast = useToast();
+	const [emailOrPhoneNumber, setEmailOrPhoneNumber] = useState('');
+	const [password, setPassword] = useState('');
 
-  const handleLogin = async () => {
-    try {
-      const data = await postData<Login>('/api/auth/login/', {
-        email_or_phone_number: emailOrPhoneNumber,
-        password: password,
-      });
+	const handleLogin = async () => {
+		try {
+		const data = await postData<Login>('/api/auth/login/', {
+			email_or_phone_number: emailOrPhoneNumber,
+			password: password,
+		});
 
-	  if (data) {
-		const accessToken = data.access_token;
-		localStorage.setItem('accessToken', accessToken);
-	  }
+		if (data) {
+			const accessToken = data.access_token;
+			localStorage.setItem('accessToken', accessToken);
+
+			onLoginSuccess(); // 로그인 성공시 onLoginSuccess 핸들러 호출
+
+			toast({
+				title: `로그인 성공!`,
+				position: 'top',
+				status: 'success',
+				isClosable: true,
+			})
+
+			onClose();
+		} else {
+			toast({
+				title: `로그인 실패!`,
+				position: 'top',
+				status: 'success',
+				isClosable: true,
+			})
+		}
 
 
-      // 추가적인 작업 수행
+		// 추가적인 작업 수행
 
-      onLoginSuccess(); // 로그인 성공시 onLoginSuccess 핸들러 호출
-      onClose();
-    } catch (error: any) {
-      console.error(error.response.data);
-    }
-  };
+		
+		} catch (error: any) {
+			toast({
+				title: `로그인 실패!`,
+				position: 'top',
+				status: 'success',
+				isClosable: true,
+			})
+		console.error(error.response.data);
+		}
+	};
 
-  return (
-	<>
-		<Modal isOpen={isOpen} onClose={onClose}>
-		<ModalOverlay />
-		<ModalContent>
-			<ModalHeader>로그인</ModalHeader>
-			<ModalCloseButton />
-			<ModalBody pb={6}>
-			<FormControl>
-				<FormLabel>이메일/전화번호</FormLabel>
-				<Input
-				placeholder="이메일/전화번호"
-				value={emailOrPhoneNumber}
-				onChange={(e) => setEmailOrPhoneNumber(e.target.value)}
-				/>
-			</FormControl>
+	return (
+		<>
+			<Modal isOpen={isOpen} onClose={onClose}>
+			<ModalOverlay />
+			<ModalContent>
+				<ModalHeader>로그인</ModalHeader>
+				<ModalCloseButton />
+				<ModalBody pb={6}>
+				<FormControl>
+					<FormLabel>이메일/전화번호</FormLabel>
+					<Input
+					placeholder="이메일/전화번호"
+					value={emailOrPhoneNumber}
+					onChange={(e) => setEmailOrPhoneNumber(e.target.value)}
+					/>
+				</FormControl>
 
-			<FormControl mt={4}>
-				<FormLabel>비밀번호</FormLabel>
-				<Input
-				type="password"
-				placeholder="비밀번호"
-				value={password}
-				onChange={(e) => setPassword(e.target.value)}
-				/>
-			</FormControl>
-			</ModalBody>
+				<FormControl mt={4}>
+					<FormLabel>비밀번호</FormLabel>
+					<Input
+					type="password"
+					placeholder="비밀번호"
+					value={password}
+					onChange={(e) => setPassword(e.target.value)}
+					/>
+				</FormControl>
+				</ModalBody>
 
-			<ModalFooter>
-			<Button onClick={openJoinModal} mr={3}>
-				회원가입
-			</Button>
-			<Button colorScheme="blue" onClick={handleLogin}>
-				완료
-			</Button>
-			</ModalFooter>
-		</ModalContent>
-		</Modal>
-	</>
-  );
+				<ModalFooter>
+				<Button onClick={openJoinModal} mr={3}>
+					회원가입
+				</Button>
+				<Button colorScheme="blue" onClick={handleLogin}>
+					완료
+				</Button>
+				</ModalFooter>
+			</ModalContent>
+			</Modal>
+		</>
+  	);
 };
 
 export default LoginModal;

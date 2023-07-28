@@ -1,7 +1,8 @@
 import {
 	Link,
 	useColorModeValue,
-	Text
+	Text,
+	HStack  
 } from '@chakra-ui/react';
 import NextLink from 'next/link'
 
@@ -11,7 +12,7 @@ interface NavItem {
 	href: string;
 }
 
-const MyPageMobileNav = ({ label, href }: NavItem) => {
+const MyPageNavLink = ({ label, href }: NavItem) => {
 	const linkColor = useColorModeValue('gray.600', 'gray.200');
 	const linkHoverColor = useColorModeValue('gray.800', 'white');
 	
@@ -33,4 +34,4 @@ const MyPageMobileNav = ({ label, href }: NavItem) => {
 	);
 };
 
-export default MyPageMobileNav;
+export default MyPageNavLink;

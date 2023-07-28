@@ -1,60 +1,44 @@
 "use client"
-import {
-	Card,
-	EditablePreview,
-	CardBody, 
-	Box,
-	Divider ,
-	Input,
-	Editable,
-	useEditableControls,
-	ButtonGroup,
-	IconButton,
-	Flex,
-	EditableInput
-} from '@chakra-ui/react';
-import MyPageNavBar from "../../../components/Layout/MyPage/NavBar"
-import { CheckIcon, EditIcon, CloseIcon } from '@chakra-ui/icons'
+import { useState } from "react";
+import { 
+	Button, 
+	Input, 
+	Modal, 
+	ModalBody, 
+	ModalCloseButton, 
+	ModalContent, 
+	ModalHeader,
+	ModalOverlay,
+	Stack, 
+	Text, 
+	Card, 
+	CardBody 
+} from "@chakra-ui/react";
+
+import MyPageNavBar from "../../../components/Layout/MyPage/NavBar";
+import ProfileEditEmailField from "../../../components/Profile/Edit/EmailField"
+import ProfileEditNickNameField from "../../../components/Profile/Edit/NickNameField"
+import ProfileEditPhoneNumberField from "../../../components/Profile/Edit/PhoneNumberField"
+
+
 
 const MyPageMyprofile = () => {
-	const EditableControls = () => {
-		const {
-			isEditing,
-			getSubmitButtonProps,
-			getCancelButtonProps,
-			getEditButtonProps,
-		  } = useEditableControls()
-	  
-		  return isEditing ? (
-			<ButtonGroup justifyContent='center' size='sm'>
-			  <IconButton icon={<CheckIcon />} {...getSubmitButtonProps()} />
-			  <IconButton icon={<CloseIcon />} {...getCancelButtonProps()} />
-			</ButtonGroup>
-		  ) : (
-			<Flex justifyContent='center'>
-			  <IconButton size='sm' icon={<EditIcon />} {...getEditButtonProps()} />
-			</Flex>
-		  )
-
-	}
+	const email = "user@example.com";
+	const nickname = "사용자";
+	const phoneNumber = "010-1234-5678";
+	
 	return (
-		<MyPageNavBar>			
-			<Card>
-				<CardBody>
-					<Editable
-						textAlign='center'
-						defaultValue='Rasengan ⚡️'
-						fontSize='2xl'
-						isPreviewFocusable={false}
-						>
-						<EditablePreview />
-						{/* Here is the custom input */}
-						<Input as={EditableInput} />
-						<EditableControls />
-					</Editable>
-				</CardBody>
-			</Card>
-		</MyPageNavBar>
+		<>
+			<MyPageNavBar>			
+				<Card>
+					<CardBody>
+							<ProfileEditEmailField user_email={email}/>
+							<ProfileEditNickNameField user_nickname={nickname} />
+							<ProfileEditPhoneNumberField user_phone_number={phoneNumber}/>
+					</CardBody>
+				</Card>
+			</MyPageNavBar>
+		</>
 	)
 }
 
