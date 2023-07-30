@@ -125,6 +125,7 @@ const ProfileEditPhoneNumberField: React.FC<ProfileEditPhoneNumberFieldProps> = 
 	//}, [modalPhoneNumber]);
 
 	const handleRequestVerification = async () => {
+		setVerificationCode('');
 		try {
 
 			const data = await postData<ProfileEditSendSmsPostProps>('/api/auth/send/sms/', {
