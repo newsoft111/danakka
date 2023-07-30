@@ -49,6 +49,8 @@ const ProfileEditPhoneNumberField: React.FC<ProfileEditPhoneNumberFieldProps> = 
 
 
 	const handleOpenModal = () => {
+		setModalPhoneNumber('');
+		setShowVerification(false)
 		setIsOpen(true);
 	};
 
