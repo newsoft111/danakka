@@ -3,10 +3,13 @@ import {
 	FormControl,
 	FormLabel,
 	Input,
-	FormHelperText
+	InputGroup,
+	InputRightElement,
+	Flex
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProfileEditModal from "./Modal";
+import ProfileEditFormInputField from './FormInputField';
 
 interface ProfileEditEmailFieldProps {
 	user_email: string; // 이메일은 문자열로 가정합니다. 실제 타입에 맞게 변경해주세요.
@@ -14,7 +17,7 @@ interface ProfileEditEmailFieldProps {
 
 const ProfileEditEmailField: React.FC<ProfileEditEmailFieldProps> = ({ user_email }) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const [email, setEmail] = useState<string>(user_email);
+	const [email, setEmail] = useState<string>('');
 	const [modalEmail, setModalEmail] = useState<string>(user_email);
 
 	const handleOpenModal = () => {
@@ -25,24 +28,14 @@ const ProfileEditEmailField: React.FC<ProfileEditEmailFieldProps> = ({ user_emai
 		console.log("새로운 이메일:", modalEmail);
 		setEmail(modalEmail);
 	};
+	
+	useEffect(() => {
+		setEmail(user_email);
+	}, [user_email]);
 
 	return (
 		<>
-			<div>{email}</div>
-			<Button onClick={handleOpenModal}>수정</Button>
-			{isOpen && (
-				<ProfileEditModal field="이메일" onClose={() => setIsOpen(false)} onSave={handleSave}>
-				{/* 이메일 필드에서 수정할 내용을 입력하는 폼 요소를 추가합니다. */}
-					<FormControl>
-						<FormLabel>Email address</FormLabel>
-						<Input
-							type='email'
-							value={modalEmail}
-							onChange={(e) => setModalEmail(e.target.value)}
-						/>
-					</FormControl>
-				</ProfileEditModal>
-			)}
+			<ProfileEditFormInputField label="이메일" value={email} handleOnClick={handleOpenModal} isReadOnly={true}/>
 		</>
 	);
 };

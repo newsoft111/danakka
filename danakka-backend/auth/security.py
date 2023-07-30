@@ -47,18 +47,30 @@ def create_access_token(
 
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user_info(
+        token: str = Depends(oauth2_scheme),
+        db: Session = Depends(get_db)
+    ):
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        user_id: str = payload.get("sub")
+        if user_id is None:
             return {
                 "status_code":401,
                 "detail":"Invalid authentication credentials"
 			}
+        
+        user = db.query(models.AuthUser).filter(
+                models.AuthUser.id == user_id,
+        ).first()
         return {
 			"status_code":200,
-			"detail":username
+			"detail": {
+                "email": user.email,
+                "nickname": user.nickname,
+                "phone_number":user.phone_number
+            },
+            "user_id": user_id
 		}
     
     except jwt.ExpiredSignatureError:
@@ -66,9 +78,9 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
 			"status_code":401,
 			"detail":"Token has expired"
 		}
-        
-    except jwt.JWTError:
-        return{
+    
+    except:
+        return {
 			"status_code":401,
-			"detail":"Could not validate credentials"
+			"detail":"알수없는 오류입니다."
 		}

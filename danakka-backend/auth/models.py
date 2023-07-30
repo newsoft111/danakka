@@ -12,6 +12,13 @@ class AuthUser(Base):
 
 	id = Column(Integer, primary_key=True, index=True)
 	email = Column(String)
-	phone_number = Column(String)
+	nickname = Column(String)
+	phone_number = Column(String, nullable=True)
 	password = Column(String)
 	created_at = Column(DateTime, default=datetime.now(local_timezone))
+
+class AuthSms(Base):
+	__tablename__ = "auth_sms"
+
+	phone_number = Column(String, primary_key=True)
+	verify_code = Column(Integer)

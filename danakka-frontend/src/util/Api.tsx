@@ -37,13 +37,6 @@ export async function getData<T>(url: string, params: any): Promise<T | undefine
 }
 
 export async function postData<T>(url: string, params: any): Promise<T | undefined> {
-  try {
-    const response = await api.post(url, params);
-    if (!response.data.error) {
-      return response.data;
-    }
-  } catch (error) {
-    console.error(error);
-    return undefined;
-  }
+	const response = await api.post(url, params);
+	return response.data;
 }

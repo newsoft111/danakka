@@ -26,7 +26,6 @@ const JoinModal: React.FC<JoinModalProps> = ({
   openLoginModal,
 }) => {
   const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [passwordCheck, setPasswordCheck] = useState("");
 
@@ -39,7 +38,6 @@ const JoinModal: React.FC<JoinModalProps> = ({
     try {
 		const response = await axios.post("/api/auth/join/", {
 			email: email,
-			phone_number: phoneNumber,
 			password: password,
 			password_check: passwordCheck,
 		});
@@ -71,14 +69,6 @@ const JoinModal: React.FC<JoinModalProps> = ({
             />
           </FormControl>
 
-          <FormControl mt={4}>
-            <FormLabel>전화번호</FormLabel>
-            <Input
-              placeholder="전화번호"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-            />
-          </FormControl>
 
           <FormControl mt={4}>
             <FormLabel>비밀번호</FormLabel>

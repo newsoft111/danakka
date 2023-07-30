@@ -1,47 +1,90 @@
 import {
-	Button,
-	FormControl,
-	FormLabel,
-	Input,
-	FormHelperText
+	useToast
 } from "@chakra-ui/react";
-import { useState } from "react";
-import ProfileEditModal from "./Modal";
+import { useState, useEffect } from "react";
+import ProfileEditFormInputField from './FormInputField';
+import {postData} from '../../../util/Api'
 
 interface ProfileEditNickNameFieldProps {
 	user_nickname: string; // 이메일은 문자열로 가정합니다. 실제 타입에 맞게 변경해주세요.
 }
 
+interface User {
+	email: string;
+	nickname: string;
+	phone_number: string;
+  }
+  
+interface UserData {
+	user: User;
+}
+
+interface ProfileEditNickNamePostProps {
+	status_code: number;
+	detail: string;
+}
+
 const ProfileEditNickNameField: React.FC<ProfileEditNickNameFieldProps> = ({ user_nickname }) => {
-	const [isOpen, setIsOpen] = useState(false);
-	const [nickName, setNickname] = useState<string>(user_nickname);
-	const [modalNickName, setModalNickName] = useState<string>(user_nickname);
+	const toast = useToast();
 
-	const handleOpenModal = () => {
-		setIsOpen(true);
+	const [nickName, setNickname] = useState<string>('');
+
+	useEffect(() => {
+		setNickname(user_nickname);
+	}, [user_nickname]);
+
+	const handleSave = async () => {
+		try {
+			const token = localStorage.getItem('accessToken');
+
+			const data = await postData<ProfileEditNickNamePostProps>('/api/auth/change/nickname/', {
+				token: token,
+				nickname: nickName,
+			});
+
+			if (data) {
+				const savedUser = localStorage.getItem("user");
+				if (savedUser) {
+					const userData: UserData = JSON.parse(savedUser);
+
+					userData.user.nickname = nickName;
+
+					localStorage.setItem('user', JSON.stringify(userData));
+				}
+
+				toast({
+					title: `닉네임을 변경했습니다.`,
+					position: 'top',
+					status: 'success',
+					isClosable: true,
+				})
+			} else {
+				toast({
+					title: "알수없는 오류입니다. 관리자에게 문의해주세요.",
+					position: 'top',
+					status: 'error',
+					isClosable: true,
+				})
+			}
+		
+		} catch (error: any) {
+			const data = error.response.data;
+			toast({
+				title: data.detail,
+				position: 'top',
+				status: 'error',
+				isClosable: true,
+			})
+		}
 	};
 
-	const handleSave = () => {
-		console.log("새로운 이메일:", modalNickName);
-		setNickname(modalNickName);
-	};
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setNickname(e.target.value);
+	}
 
 	return (
 		<>
-			<div>{nickName}</div>
-			<Button onClick={handleOpenModal}>수정</Button>
-			{isOpen && (
-				<ProfileEditModal field="닉네임" onClose={() => setIsOpen(false)} onSave={handleSave}>
-				{/* 이메일 필드에서 수정할 내용을 입력하는 폼 요소를 추가합니다. */}
-					<FormControl>
-						<FormLabel>닉네임</FormLabel>
-						<Input
-							value={modalNickName}
-							onChange={(e) => setModalNickName(e.target.value)}
-						/>
-					</FormControl>
-				</ProfileEditModal>
-			)}
+			<ProfileEditFormInputField label="닉네임" value={nickName} handleOnClick={handleSave} handleonChange={handleChange}/>
 		</>
 	);
 };

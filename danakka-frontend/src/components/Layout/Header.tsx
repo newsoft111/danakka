@@ -18,7 +18,7 @@ import {
 import { FiBell, FiMenu, FiMoon, FiSun, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
 import JoinModal from '../Authentication/JoinModal';
-import { VerifyToken, Logout } from '../../util/Authentication'; // verifyToken 함수 임포트
+import { verifyToken, Logout } from '../../util/Authentication'; // verifyToken 함수 임포트
 import NextLink from 'next/link';
 
 
@@ -57,14 +57,15 @@ const Header = () => {
 
   useEffect(() => {
     (async () => {
-      try {
-        const user = await VerifyToken();
-        setIsLoggedIn(!!user);
-		
-      } catch (error) {
-        setIsLoggedIn(false);
-		
-      }
+		try {
+			const user = await verifyToken();
+			if (user) {
+				setIsLoggedIn(!!user);
+			}
+			
+		} catch (error) {
+			setIsLoggedIn(false);
+		}
     })();
   }, [isLoggedIn]);
 

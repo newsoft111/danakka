@@ -20,6 +20,8 @@ requests = "^2.28.2"
 pyjwt = "^2.7.0"
 passlib = "^1.7.4"
 pytz = "^2023.3"
+urllib3 = "1.26.15"
+pushbullet-py = "^0.12.0"
 
 
 [build-system]

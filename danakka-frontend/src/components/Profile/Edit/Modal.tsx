@@ -18,7 +18,7 @@ const ProfileEditModal: React.FC<ModalProps> = ({ field, onClose, onSave, childr
     <ChakraModal isOpen={true} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>수정 - {field}</ModalHeader>
+        <ModalHeader>{field}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           {/* 자식 컴포넌트로 전달된 내용을 표시합니다. */}

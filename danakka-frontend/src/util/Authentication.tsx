@@ -1,14 +1,23 @@
 import {postData} from '../util/Api'
 // 토큰 검증 함수
-export async function VerifyToken() {
-  try {
-    const accessToken = localStorage.getItem('accessToken');
-	return postData('/api/auth/verify_token/', { token: accessToken });
-  } catch (error) {
-    // 토큰이 유효하지 않을 경우 에러 처리
-    console.log('토큰이 유효하지 않습니다.');
-    return null;
-  }
+export async function verifyToken() {
+	try {
+		const accessToken = localStorage.getItem('accessToken');
+		const data = await postData('/api/auth/verify_token/', { token: accessToken })
+
+		if (data) {
+			localStorage.setItem("user", JSON.stringify(data));
+			return data;
+		} else {
+			return null;
+		}
+
+
+	} catch (error) {
+	// 토큰이 유효하지 않을 경우 에러 처리
+		console.log('토큰이 유효하지 않습니다.');
+		return null;
+	}
 }
 
 

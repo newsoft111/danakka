@@ -4,7 +4,7 @@ import {
 	Flex,
 	CardBody, 
 	Link,
-	StackDivider,
+	Container,
 	Text,
 	Grid,
 	GridItem,
@@ -74,31 +74,18 @@ const HorizontalMenu = () => {
 
 const MyPageNavBar = ({ children }: { children: React.ReactNode }) => {
 	return (
-		<Grid
-			templateColumns={{ sm: "1fr", lg: "repeat(4, 1fr)" }}
-			gap={4}
-			>
-			<GridItem colSpan={1}>
-
-				<Hide below='lg'>
-					<ProfileCard/>
-				</Hide>
-
-			</GridItem>
-
-			<GridItem colSpan={3}>
-				<Card mb={4}>
-					<CardBody>
-						<Flex>
-							<HorizontalMenu/>
-						</Flex >
-					</CardBody>
-				</Card>
+		<Container m={0} mx="auto" p={0} maxW='560px'>
+			<Card mb={4}>
+				<CardBody>
+					<Flex>
+						<HorizontalMenu/>
+					</Flex >
+				</CardBody>
+			</Card>
+			
+			{children}
 				
-				{children}
-			</GridItem>
-		</Grid>
-
+		</Container>
 		
 	)
   };

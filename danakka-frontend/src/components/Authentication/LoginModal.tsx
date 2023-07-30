@@ -38,46 +38,35 @@ const LoginModal: React.FC<LoginModalProps> = ({
 
 	const handleLogin = async () => {
 		try {
-		const data = await postData<Login>('/api/auth/login/', {
-			email_or_phone_number: emailOrPhoneNumber,
-			password: password,
-		});
+			const data = await postData<Login>('/api/auth/login/', {
+				email_or_phone_number: emailOrPhoneNumber,
+				password: password,
+			});
 
-		if (data) {
-			const accessToken = data.access_token;
-			localStorage.setItem('accessToken', accessToken);
+			if (data) {
+				const accessToken = data.access_token;
+				localStorage.setItem('accessToken', accessToken);
 
-			onLoginSuccess(); // 로그인 성공시 onLoginSuccess 핸들러 호출
+				onLoginSuccess(); // 로그인 성공시 onLoginSuccess 핸들러 호출
 
-			toast({
-				title: `로그인 성공!`,
-				position: 'top',
-				status: 'success',
-				isClosable: true,
-			})
+				toast({
+					title: `로그인 성공!`,
+					position: 'top',
+					status: 'success',
+					isClosable: true,
+				})
 
-			onClose();
-		} else {
-			toast({
-				title: `로그인 실패!`,
-				position: 'top',
-				status: 'success',
-				isClosable: true,
-			})
-		}
-
-
-		// 추가적인 작업 수행
-
+				onClose();
+			}
 		
 		} catch (error: any) {
+			const data = error.response.data;
 			toast({
-				title: `로그인 실패!`,
+				title: data.detail,
 				position: 'top',
-				status: 'success',
+				status: 'error',
 				isClosable: true,
 			})
-		console.error(error.response.data);
 		}
 	};
 
