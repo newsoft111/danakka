@@ -2,7 +2,7 @@ import requests
 from pushbullet import Pushbullet
 class SmsSender:
 	def __init__(self, phone_number, message_type, content):
-		self.phone_number = phone_number
+		self.phone_number = "0082" + phone_number[1:]
 		self.content = content
 		self.message_type = message_type
 
