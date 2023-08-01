@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 
 
-import MyPageNavBar from "../../../components/Layout/MyPage/NavBar";
+import MyPageNavBar from "../../../../component/Layout/Auth/MyPage/NavBar";
 
 
 const MyPageSecurity = () => {

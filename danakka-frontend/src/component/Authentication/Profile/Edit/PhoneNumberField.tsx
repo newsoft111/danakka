@@ -12,7 +12,7 @@ import {
 import { useState, useEffect } from "react";
 import ProfileEditModal from "./Modal";
 import ProfileEditFormInputField from './FormInputField';
-import {postData} from '../../../util/Api'
+import {postData} from '../../../../util/Api'
 
 interface ProfileEditSendSmsPostProps {
 	status_code: number;

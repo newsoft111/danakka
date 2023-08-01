@@ -17,10 +17,10 @@ import {
 } from "@chakra-ui/react";
 import { MdModeEditOutline } from 'react-icons/md';
 
-import MyPageNavBar from "../../../components/Layout/MyPage/NavBar";
-import ProfileEditEmailField from "../../../components/Profile/Edit/EmailField"
-import ProfileEditNickNameField from "../../../components/Profile/Edit/NickNameField"
-import ProfileEditPhoneNumberField from "../../../components/Profile/Edit/PhoneNumberField"
+import MyPageNavBar from "../../../../component/Layout/Auth/MyPage/NavBar";
+import ProfileEditEmailField from "../../../../component/Authentication/Profile/Edit/EmailField"
+import ProfileEditNickNameField from "../../../../component/Authentication/Profile/Edit/NickNameField"
+import ProfileEditPhoneNumberField from "../../../../component/Authentication/Profile/Edit/PhoneNumberField"
 
 
 
@@ -35,7 +35,6 @@ const MyPageMyprofile = () => {
 
 		if (savedUser) {
 			const user = JSON.parse(savedUser).user;
-			console.log(nickname)
 			setEmail(user.email);
 			setNickname(user.nickname);
 			setPhoneNumber(user.phone_number);
@@ -44,7 +43,6 @@ const MyPageMyprofile = () => {
 
 	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0] || null;
-		console.log(file)
 	};
 	
 	const handleButtonClick = () => {

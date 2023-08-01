@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext  } from 'react';
 import {
   Box,
   Flex,
@@ -13,12 +13,12 @@ import {
   MenuDivider,
   Link,
   useColorMode,
-  
 } from '@chakra-ui/react';
+import AuthContext from '../../context/AuthContext';
 import { FiBell, FiMenu, FiMoon, FiSun, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
 import JoinModal from '../Authentication/JoinModal';
-import { verifyToken, Logout } from '../../util/Authentication'; // verifyToken 함수 임포트
+import { Logout } from '../../util/Authentication'; // verifyToken 함수 임포트
 import NextLink from 'next/link';
 
 
@@ -26,11 +26,9 @@ import NextLink from 'next/link';
 const Header = () => {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
   const { toggleColorMode, colorMode } = useColorMode();
 
-
- 
 
   const openLoginModal = () => {
     setIsLoginModalOpen(true);
@@ -54,20 +52,6 @@ const Header = () => {
 	setIsLoggedIn(true); // 로그인 성공시 isLoggedIn을 true로 설정
     closeLoginModal(); // 로그인 모달 닫기
   };
-
-  useEffect(() => {
-    (async () => {
-		try {
-			const user = await verifyToken();
-			if (user) {
-				setIsLoggedIn(!!user);
-			}
-			
-		} catch (error) {
-			setIsLoggedIn(false);
-		}
-    })();
-  }, [isLoggedIn]);
 
 
 
@@ -118,11 +102,11 @@ const Header = () => {
 					icon={<FiUser />}
 					/>
 					<MenuList>
-						<MenuItem as={NextLink} href='/mypage'>대시보드</MenuItem>
-						<MenuItem as={NextLink} href='/mypage/profile'>내프로필</MenuItem>
-						<MenuItem as={NextLink} href='/mypage/security'>보안설정</MenuItem>
+						<MenuItem as={NextLink} href='/auth/mypage'>대시보드</MenuItem>
+						<MenuItem as={NextLink} href='/auth/mypage/profile'>내프로필</MenuItem>
+						<MenuItem as={NextLink} href='/auth/mypage/security'>보안설정</MenuItem>
 						<MenuDivider />
-						<MenuItem as={NextLink} href='/mypage/ticket'>티켓 : 100장</MenuItem>
+						<MenuItem as={NextLink} href='/auth/mypage/ticket'>티켓 : 100장</MenuItem>
 						<MenuDivider />
 						<MenuItem onClick={Logout}>로그아웃</MenuItem>
 							

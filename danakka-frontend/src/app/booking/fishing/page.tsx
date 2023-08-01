@@ -78,6 +78,65 @@ const BookingFishingList = () => {
 		scrollRestoration.getPosition();
 	})
 
+	
+	const saveFilterDataToLocalStorage = () => {
+		const expirationDate = new Date();
+		expirationDate.setHours(23, 59, 59); // 시간을 23시 59분 59초로 설정
+
+		const filterData = {
+		  selectedFishingType,
+		  selectedSpeciesItem,
+		  SelectedHarbor,
+		  SelectedDate: SelectedDate.toISOString(), // Convert date to string for storage
+		  selectedAvailableSeats,
+		  canBooking,
+		  expirationDate: expirationDate.toISOString(),
+		};
+		localStorage.setItem("filterData", JSON.stringify(filterData));
+	};
+	
+	const loadFilterDataFromLocalStorage = () => {
+		const storedFilterData = localStorage.getItem("filterData");
+
+		if (storedFilterData) {
+		  const filterData = JSON.parse(storedFilterData);
+
+		  const expirationDate = new Date(filterData.expirationDate);
+			const now = new Date();
+			if (now <= expirationDate) {
+				setSelectedFishingType(filterData.selectedFishingType);
+				setselectedSpeciesItem(filterData.selectedSpeciesItem);
+				setSelectedHarbor(filterData.SelectedHarbor);
+				setSelectedDate(new Date(filterData.SelectedDate));
+				setAvailableSeats(filterData.selectedAvailableSeats);
+				setCanBooking(filterData.canBooking);
+			} else {
+				// 데이터가 만료된 경우, 해당 데이터를 삭제하고 null 반환
+				localStorage.removeItem("filterData");
+				return null;
+			}
+			
+		}
+		return null;
+	};
+	
+	  // Load filter data from local storage when the component mounts
+	useEffect(() => {
+		loadFilterDataFromLocalStorage();
+	}, []);
+	
+	  // Save filter data to local storage whenever the filters change
+	useEffect(() => {
+		saveFilterDataToLocalStorage();
+	}, [
+		selectedFishingType,
+		selectedSpeciesItem,
+		SelectedHarbor,
+		SelectedDate,
+		selectedAvailableSeats,
+		canBooking,
+	]);
+
 
 	const configs = {
 		dateFormat: 'yyyy-MM-dd',
@@ -107,15 +166,17 @@ const BookingFishingList = () => {
 		hasNextPage,
 		isFetchingNextPage,
 		status,
-	} = useInfiniteQuery(["bookingFishingList"], fetchFishingData, {
+	} = useInfiniteQuery(
+		["bookingFishingList", selectedFishingType, selectedSpeciesItem, SelectedHarbor, SelectedDate, selectedAvailableSeats, canBooking],
+		fetchFishingData, {
 			getNextPageParam: (lastPage, allPages) => {
 				const current_page = lastPage?.current_page ?? 1;
-				console.log(lastPage);
 				if (lastPage?.last_page !== current_page) return current_page + 1;
 
 				return false;
 			},
-	});
+		}
+	);
 	
 
 	const bookings = data?.pages.flatMap((page) => page?.booking_objs) || [];
@@ -170,62 +231,21 @@ const BookingFishingList = () => {
 		window.scrollTo({top: 0});
 	};
 
-	const saveFilterDataToLocalStorage = () => {
-		const filterData = {
-		  selectedFishingType,
-		  selectedSpeciesItem,
-		  SelectedHarbor,
-		  SelectedDate: SelectedDate.toISOString(), // Convert date to string for storage
-		  selectedAvailableSeats,
-		  canBooking,
-		};
-		localStorage.setItem("filterData", JSON.stringify(filterData));
-	  };
-	
-	  // Function to load the filter data from local storage
-	  const loadFilterDataFromLocalStorage = () => {
-		const storedFilterData = localStorage.getItem("filterData");
-		if (storedFilterData) {
-		  const filterData = JSON.parse(storedFilterData);
-		  setSelectedFishingType(filterData.selectedFishingType);
-		  setselectedSpeciesItem(filterData.selectedSpeciesItem);
-		  setSelectedHarbor(filterData.SelectedHarbor);
-		  setSelectedDate(new Date(filterData.SelectedDate));
-		  setAvailableSeats(filterData.selectedAvailableSeats);
-		  setCanBooking(filterData.canBooking);
-		}
-	  };
-	
-	  // Load filter data from local storage when the component mounts
-	  useEffect(() => {
-		loadFilterDataFromLocalStorage();
-	  }, []);
-	
-	  // Save filter data to local storage whenever the filters change
-	  useEffect(() => {
-		saveFilterDataToLocalStorage();
-	  }, [
-		selectedFishingType,
-		selectedSpeciesItem,
-		SelectedHarbor,
-		SelectedDate,
-		selectedAvailableSeats,
-		canBooking,
-	  ]);
   
-	  const handleScroll = useCallback(() => {
-		if (hasNextPage && !isFetchingNextPage) {
-		  // Check if there is more data to fetch and no fetch process is ongoing
-		  if (
+	const handleScroll = useCallback(() => {
+	if (hasNextPage && !isFetchingNextPage) {
+		// Check if there is more data to fetch and no fetch process is ongoing
+		if (
 			window.innerHeight + document.documentElement.scrollTop ===
 			document.documentElement.offsetHeight
-		  ) {
+		) {
 			fetchNextPage();
-		  }
 		}
-	  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+	}
+	}, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 	  
-	  useEffect(() => {
+
+	useEffect(() => {
 		window.addEventListener("scroll", handleScroll);
 		return () => {
 		  window.removeEventListener("scroll", handleScroll);
