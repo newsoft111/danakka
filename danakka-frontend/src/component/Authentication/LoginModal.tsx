@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
 	Modal,
 	ModalOverlay,
@@ -14,6 +14,8 @@ import {
 	useToast,
 } from '@chakra-ui/react';
 import {postData} from '../../util/Api'
+import AuthContext from '../../context/AuthContext';
+
 
 interface LoginModalProps {
   isOpen: boolean;

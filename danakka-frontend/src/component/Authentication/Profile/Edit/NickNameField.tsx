@@ -3,7 +3,7 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import ProfileEditFormInputField from './FormInputField';
-import {postData} from '../../../util/Api'
+import {postData} from '../../../../util/Api'
 
 interface ProfileEditNickNameFieldProps {
 	user_nickname: string; // 이메일은 문자열로 가정합니다. 실제 타입에 맞게 변경해주세요.

@@ -27,19 +27,19 @@ const HorizontalMenu = () => {
 	const NAV_ITEMS: Array<NavItem> = [
 		{
 			label: '대시보드',
-			href: '/mypage'
+			href: '/auth/mypage'
 		},
 		{
 			label: '내프로필',
-			href: '/mypage/profile'
+			href: '/auth/mypage/profile'
 		},
 		{
 			label: '보안설정',
-			href: '/mypage/security'
+			href: '/auth/mypage/security'
 		},
 		{
 			label: '티켓관리',
-			href: '/mypage/ticket'
+			href: '/auth/mypage/ticket'
 		}
 	];
 
