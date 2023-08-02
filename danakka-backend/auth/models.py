@@ -22,3 +22,10 @@ class AuthSms(Base):
 
 	phone_number = Column(String, primary_key=True)
 	verify_code = Column(Integer)
+
+
+class AuthEmail(Base):
+	__tablename__ = "auth_email"
+
+	email = Column(String, primary_key=True)
+	verify_code = Column(Integer)

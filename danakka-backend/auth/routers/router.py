@@ -13,6 +13,7 @@ from ..security import authenticate_user, create_access_token, get_current_user_
 import random
 import string
 from util.sms_module import SmsSender
+from util.email_module import EmailSender
 from random import randint
 
 router = APIRouter()
@@ -255,6 +256,108 @@ def auth_user_send_sms(
 			detail="요청에 실패했습니다.",
 			headers={"WWW-Authenticate": "Bearer"},
 		)
+
+
+
+#이메일
+class AuthUserChangeEmail(BaseModel):
+	token: str
+	email: str
+	verify_code: int
+
+@router.post(f"/api/{app_name}/change/email/")
+def auth_user_change_email(
+		auth_user_change_email_base_model: AuthUserChangeEmail,
+		db: Session = Depends(get_db)
+	):
+	email = auth_user_change_email_base_model.email
+	verify_code = auth_user_change_email_base_model.verify_code
+
+	current_user = get_current_user_info(auth_user_change_email_base_model.token, db)
+	if current_user["status_code"] != 200:
+		raise HTTPException(
+			status_code=current_user["status_code"],
+			detail=current_user["detail"],
+			headers={"WWW-Authenticate": "Bearer"},
+		)
+
+	auth_email_obj = db.query(models.AuthEmail).filter(models.AuthEmail.email==email).first()
+	if not auth_email_obj:
+		raise HTTPException(
+			status_code=400,
+			detail="잘못된 요청입니다",
+			headers={"WWW-Authenticate": "Bearer"},
+		)
+
+	if auth_email_obj.verify_code != verify_code:
+		raise HTTPException(
+			status_code=403,
+			detail="인증번호가 옳바르지 않습니다.",
+			headers={"WWW-Authenticate": "Bearer"},
+		)
+	
+	user_obj = db.query(models.AuthUser).filter(models.AuthUser.id==current_user['user_id']).first()
+	user_obj.email = email
+			
+
+	db.commit()
+	db.refresh(user_obj)
+	
+	return {
+		"status_code":200,
+		"detail": "변경이 완료되었습니다.",
+	}
+
+
+class AuthUserSendEmail(BaseModel):
+	email: str
+
+@router.post(f"/api/{app_name}/send/email/")
+def auth_user_send_email(
+		auth_user_send_sms_base_model: AuthUserSendEmail,
+		db: Session = Depends(get_db)
+	):
+	email = auth_user_send_sms_base_model.email
+
+	verify_code = str(randint(100000, 999999))
+
+	auth_email_obj = db.query(models.AuthEmail).filter(models.AuthEmail.email==email).first()
+	
+
+	if auth_email_obj:
+		# 레코드가 존재하면 auth_number를 갱신하고 저장
+		auth_email_obj.verify_code = verify_code
+
+	else:
+		# 레코드가 존재하지 않으면 새로운 레코드 생성
+		auth_email_obj = models.AuthEmail(email=email, verify_code=verify_code)
+		db.add(auth_email_obj)
+
+
+	db.commit()
+	db.refresh(auth_email_obj)
+
+	title = f'[다낚아] 이메일 인증을 완료해주세요.'
+	content = f'[다낚아]\n인증번호 [{verify_code}] 를 입력해주세요.'
+
+	email_sender = EmailSender(
+		toEmail=email,
+		title=title, 
+		content=content
+	)
+
+	if email_sender.daum():
+		return {
+			"status_code":200,
+			"detail": "전송이 완료되었습니다.",
+		}
+	else:
+		raise HTTPException(
+			status_code=500,
+			detail="요청에 실패했습니다.",
+			headers={"WWW-Authenticate": "Bearer"},
+		)
+
 
 
 
