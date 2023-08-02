@@ -36,7 +36,8 @@ class EmailSender:
 				return True
 
 
-			except:
+			except Exception as e:
+				print(e)
 				return False
 		else:
 			return False
