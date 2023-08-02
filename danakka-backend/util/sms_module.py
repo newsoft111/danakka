@@ -38,7 +38,7 @@ class SmsSender:
 			pb = Pushbullet(api_key)
 			try:
 
-				device = pb.devices[0] #디바이스 설정
+				device = pb.devices[1] #디바이스 설정
 				pb.push_sms(device, self.phone_number, self.content)
 				return True
 
