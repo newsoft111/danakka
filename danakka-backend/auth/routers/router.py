@@ -55,7 +55,8 @@ async def auth_user_join(
 	new_user = models.AuthUser(
 		email=email,
 		password=password_hash,
-		nickname=nickname
+		nickname=nickname,
+		auth_promotion_agreement=models.AuthPromotionAgreement()
 	)
 	db.add(new_user)
 	db.commit()
@@ -357,6 +358,7 @@ def auth_user_send_email(
 			detail="요청에 실패했습니다.",
 			headers={"WWW-Authenticate": "Bearer"},
 		)
+
 
 
 

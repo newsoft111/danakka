@@ -57,7 +57,7 @@ const MyPageMyprofile = () => {
 				<Card>
 					<CardBody>
 						<Heading size="md" mb={7}>기본정보</Heading>
-						<FormControl role="group">
+						{/* <FormControl role="group">
 							<Flex alignItems={{ base: "flex-start", lg: "center" }} direction={{ base: "column", lg: "row" }}>
 							<FormLabel flexShrink="0" m={0} width={{ base: "100%", lg: "150px" }}>프로필</FormLabel>
 								<InputGroup>									
@@ -82,7 +82,7 @@ const MyPageMyprofile = () => {
 
 								</InputGroup>
 							</Flex>
-						</FormControl>
+						</FormControl> */}
 
 						<ProfileEditEmailField user_email={email}/>
 						<ProfileEditNickNameField user_nickname={nickname} />
