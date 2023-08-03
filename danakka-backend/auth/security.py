@@ -2,6 +2,7 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from typing import Optional
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from db.connection import get_db
 from . import models
@@ -23,12 +24,19 @@ def authenticate_user(
         db: Session = Depends(get_db)
     )-> Optional[models.AuthUser]:
     
-    user = db.query(models.AuthUser).filter(
-					models.AuthUser.phone_number if '@' in email_or_phone_number else models.AuthUser.email == email_or_phone_number,
+	is_email_format = '@' in email_or_phone_number
+
+
+	user = db.query(models.AuthUser).filter(
+				or_(
+					(models.AuthUser.email == email_or_phone_number) if is_email_format else False,
+					(models.AuthUser.phone_number == email_or_phone_number) if not is_email_format else False
+				)
 			).first()
-    if not user or not Hasher.verify_password(password, user.password):
-        return None
-    return user
+
+	if not user or not Hasher.verify_password(password, user.password):
+		return None
+	return user
 
 
 def create_access_token(
