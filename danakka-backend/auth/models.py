@@ -17,7 +17,7 @@ class AuthUser(Base):
 	password = Column(String)
 	created_at = Column(DateTime, default=datetime.now(local_timezone))
 
-	auth_promotion_agreement = relationship("AuthPromotionAgreement", back_populates="auth_user")
+	auth_promotion_agreement = relationship("AuthPromotionAgreement", back_populates="auth_user", uselist=False)
 
 
 class AuthPromotionAgreement(Base):

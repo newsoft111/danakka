@@ -22,7 +22,6 @@ app_name = 'auth'
 
 class AuthUserJoinBaseModel(BaseModel):
 	email: str
-	phone_number: int
 	password: str
 	password_check: str
 
