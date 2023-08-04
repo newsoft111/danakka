@@ -13,6 +13,8 @@ import { useState, useEffect } from "react";
 import ProfileEditModal from "./Modal";
 import ProfileEditFormInputField from './FormInputField';
 import {postData} from '../../../../util/Api'
+import {updateUserInformation} from '../../../../util/UpdateUserInformation'
+
 
 interface ProfileEditEmailFieldProps {
 	user_email: string; // 이메일은 문자열로 가정합니다. 실제 타입에 맞게 변경해주세요.
@@ -58,14 +60,7 @@ const ProfileEditEmailField: React.FC<ProfileEditEmailFieldProps> = ({ user_emai
 			});
 
 			if (data) {
-				const savedUser = localStorage.getItem("user");
-				if (savedUser) {
-					const userData: UserData = JSON.parse(savedUser);
-
-					userData.user.email = modalEmail;
-
-					localStorage.setItem('user', JSON.stringify(userData));
-				}
+				updateUserInformation('email', modalEmail);
 
 				setEmail(modalEmail);
 

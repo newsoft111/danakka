@@ -41,15 +41,15 @@ const MyPageMyprofile = () => {
 		}
 	}, []);
 
-	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-		const file = event.target.files?.[0] || null;
-	};
+	// const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+	// 	const file = event.target.files?.[0] || null;
+	// };
 	
-	const handleButtonClick = () => {
-		if (inputRef.current) {
-		  inputRef.current.click();
-		}
-	};
+	// const handleButtonClick = () => {
+	// 	if (inputRef.current) {
+	// 	  inputRef.current.click();
+	// 	}
+	// };
 	
 	return (
 		<>

@@ -28,51 +28,53 @@ export function Providers({
 	}, []);
 
 	useEffect(() => {
-		(async () => {
-			try {
-				const user = await verifyToken();
-				if (user) {
-					setIsLoggedIn(!!user);
-				}
-				
-			} catch (error) {
-				setIsLoggedIn(false);
+		const verifyUser = async () => {
+		try {
+			const user = await verifyToken();
+			if (user) {
+			setIsLoggedIn(true);
+			} else {
+			setIsLoggedIn(false);
 			}
-		})();
-	}, [isLoggedIn]);
+		} catch (error) {
+			setIsLoggedIn(false);
+		}
+		};
+	
+		verifyUser();
+	}, []);
 
 
+	const [queryClient] = useState(() => new QueryClient())
 
-  const [queryClient] = useState(() => new QueryClient())
+	const theme = extendTheme({
+		fonts: {
+		heading: `'Noto Sans KR', sans-serif`,
+		body: `'Noto Sans KR', sans-serif`,
+		},
+	})
 
-  const theme = extendTheme({
-	fonts: {
-	  heading: `'Noto Sans KR', sans-serif`,
-	  body: `'Noto Sans KR', sans-serif`,
-	},
-  })
+	return (
+		<QueryClientProvider client={queryClient}>
+			<CacheProvider>
+				<ChakraProvider theme={theme}>
+					<AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
+						<Header/>
+							<LoginWrapper>
+							{isLoading ? (
+								<CenterSnipper/>
+							) : (
+								<Box w={"100%"} p={4}>
+									{children}
+								</Box>
+							)}
+							</LoginWrapper>
+						<Footer />
+					</AuthContext.Provider>
+				</ChakraProvider>
+			</CacheProvider>
+			<ReactQueryDevtools initialIsOpen={false} />
+		</QueryClientProvider>
 
-  return (
-	<QueryClientProvider client={queryClient}>
-		<CacheProvider>
-			<ChakraProvider theme={theme}>
-				<AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn }}>
-					<Header/>
-					<LoginWrapper>
-						{isLoading ? (
-							<CenterSnipper/>
-						) : (
-						<Box w={"100%"} p={4}>
-							{children}
-						</Box>
-						)}
-					</LoginWrapper>
-					<Footer />
-				</AuthContext.Provider>
-			</ChakraProvider>
-		</CacheProvider>
-		<ReactQueryDevtools initialIsOpen={false} />
-	</QueryClientProvider>
-
-  )
+	)
 }

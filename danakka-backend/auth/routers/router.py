@@ -360,6 +360,48 @@ def auth_user_send_email(
 
 
 
+@router.put(f"/api/{app_name}/update/promotion_agreed/phone/{{user_id}}/")
+def auth_user_update_phone_promotion_agreed(
+	user_id: int, 
+	phone_promotion_agreed: bool,
+	db: Session = Depends(get_db)
+):
+        # Query the AuthUser by user_id
+	user = db.query(models.AuthUser).filter(models.AuthUser.id == user_id).first()
+
+        # If the user does not exist, raise an HTTPException with status code 404
+	if not user:
+		raise HTTPException(status_code=404, detail="User not found")
+
+        # Update the phone_promotion_agreed value
+	user.auth_promotion_agreement.phone_promotion_agreed = phone_promotion_agreed
+
+	db.commit()
+	db.refresh(user)
+
+	return user
+
+
+
+@router.put(f"/api/{app_name}/update/promotion_agreed/email/{{user_id}}/")
+def auth_user_update_email_promotion_agreed(
+	user_id: int, 
+	email_promotion_agreed: bool,
+	db: Session = Depends(get_db)
+):
+        # Query the AuthUser by user_id
+	user = db.query(models.AuthUser).filter(models.AuthUser.id == user_id).first()
+
+	if not user:
+		raise HTTPException(status_code=404, detail="User not found")
+
+	user.auth_promotion_agreement.email_promotion_agreed = email_promotion_agreed
+
+	db.commit()
+	db.refresh(user)
+
+	return user
+
 
 
 def generate_random_nickname():

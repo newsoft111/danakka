@@ -21,7 +21,6 @@ export default function LoginWrapper({
 	const notPublicPages = ["auth"]; // 접근 제한이 필요한 페이지 url 
 	const pageRootName = currentPage.slice(1).split("/")[0]; // 현재 페이지의 url 이름 앞부분 
 	const isPublicPage = !notPublicPages.includes(pageRootName); 
-	console.log(isPublicPage, isLoggedIn)
 
 	useEffect(() => {
 		// 현재 페이지가 접근 제한이 필요한 페이지 && 현재 로그인된 상태가 아니라면, 
@@ -35,7 +34,6 @@ export default function LoginWrapper({
 		
 			router.push("/"); // 로그인 페이지로 이동시킴.
 		}
-
 	}, [isLoggedIn, currentPage]);
 
   if (!isPublicPage && !isLoggedIn) {

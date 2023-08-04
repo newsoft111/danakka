@@ -4,6 +4,7 @@ import {
 import { useState, useEffect } from "react";
 import ProfileEditFormInputField from './FormInputField';
 import {postData} from '../../../../util/Api'
+import {updateUserInformation} from '../../../../util/UpdateUserInformation'
 
 interface ProfileEditNickNameFieldProps {
 	user_nickname: string; // 이메일은 문자열로 가정합니다. 실제 타입에 맞게 변경해주세요.
@@ -43,14 +44,8 @@ const ProfileEditNickNameField: React.FC<ProfileEditNickNameFieldProps> = ({ use
 			});
 
 			if (data) {
-				const savedUser = localStorage.getItem("user");
-				if (savedUser) {
-					const userData: UserData = JSON.parse(savedUser);
-
-					userData.user.nickname = nickName;
-
-					localStorage.setItem('user', JSON.stringify(userData));
-				}
+				updateUserInformation("nickname", nickName);
+				
 
 				toast({
 					title: `닉네임을 변경했습니다.`,

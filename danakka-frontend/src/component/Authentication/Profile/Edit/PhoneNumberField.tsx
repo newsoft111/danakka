@@ -13,6 +13,7 @@ import { useState, useEffect } from "react";
 import ProfileEditModal from "./Modal";
 import ProfileEditFormInputField from './FormInputField';
 import {postData} from '../../../../util/Api'
+import {updateUserInformation} from '../../../../util/UpdateUserInformation'
 
 interface ProfileEditSendSmsPostProps {
 	status_code: number;
@@ -65,14 +66,7 @@ const ProfileEditPhoneNumberField: React.FC<ProfileEditPhoneNumberFieldProps> = 
 			});
 
 			if (data) {
-				const savedUser = localStorage.getItem("user");
-				if (savedUser) {
-					const userData: UserData = JSON.parse(savedUser);
-
-					userData.user.phone_number = modalPhoneNumber;
-
-					localStorage.setItem('user', JSON.stringify(userData));
-				}
+				updateUserInformation('phone_number', modalPhoneNumber);
 
 				setPhoneNumber(modalPhoneNumber);
 

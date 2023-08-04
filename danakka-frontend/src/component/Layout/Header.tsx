@@ -24,34 +24,36 @@ import NextLink from 'next/link';
 
 
 const Header = () => {
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
-  const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
-  const { toggleColorMode, colorMode } = useColorMode();
+	const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+	const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+	const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
+	const { toggleColorMode, colorMode } = useColorMode();
 
 
-  const openLoginModal = () => {
-    setIsLoginModalOpen(true);
-    setIsJoinModalOpen(false);
-  };
+	const openLoginModal = () => {
+		setIsLoginModalOpen(true);
+		setIsJoinModalOpen(false);
+	};
 
-  const closeLoginModal = () => {
-    setIsLoginModalOpen(false);
-  };
+	const closeLoginModal = () => {
+		setIsLoginModalOpen(false);
+	};
 
-  const openJoinModal = () => {
-    setIsLoginModalOpen(false);
-    setIsJoinModalOpen(true);
-  };
+	const openJoinModal = () => {
+		setIsLoginModalOpen(false);
+		setIsJoinModalOpen(true);
+	};
 
-  const closeJoinModal = () => {
-    setIsJoinModalOpen(false);
-  };
+	const closeJoinModal = () => {
+		setIsJoinModalOpen(false);
+	};
 
-  const handleLoginSuccess = () => {
-	setIsLoggedIn(true); // 로그인 성공시 isLoggedIn을 true로 설정
-    closeLoginModal(); // 로그인 모달 닫기
-  };
+	const handleLoginSuccess = () => {
+		setIsLoggedIn(true); // 로그인 성공시 isLoggedIn을 true로 설정
+		closeLoginModal(); // 로그인 모달 닫기
+	};
+
+ 	
 
 
 

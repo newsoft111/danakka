@@ -48,9 +48,10 @@ const HorizontalMenu = () => {
   
 	return (
 	  	<HStack spacing={4} overflowX="auto">
-			{NAV_ITEMS.map((navItem) => (
+			{NAV_ITEMS.map((navItem, index) => (
 
 					<Link
+						key={index}
 						flexShrink="0"
 						as={NextLink}
 						href={navItem.href}

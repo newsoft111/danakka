@@ -1,4 +1,7 @@
+import { useContext } from "react";
 import {postData} from '../util/Api'
+import AuthContext from '../context/AuthContext';
+
 // 토큰 검증 함수
 export async function verifyToken() {
 	try {
@@ -23,6 +26,6 @@ export async function verifyToken() {
 
 // 로그아웃 함수
 export async function Logout() {
-  localStorage.removeItem('accessToken');
-  window.location.href = '/';
+	localStorage.removeItem('accessToken');
+	window.location.href = '/';
 }
