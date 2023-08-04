@@ -16,7 +16,7 @@ import {
 	AvatarBadge
 } from "@chakra-ui/react";
 import { MdModeEditOutline } from 'react-icons/md';
-
+import {putData} from '../../../../util/Api';
 import MyPageNavBar from "../../../../component/Layout/Auth/MyPage/NavBar";
 import ProfileEditEmailField from "../../../../component/Authentication/Profile/Edit/EmailField"
 import ProfileEditNickNameField from "../../../../component/Authentication/Profile/Edit/NickNameField"
@@ -25,21 +25,54 @@ import ProfileEditPhoneNumberField from "../../../../component/Authentication/Pr
 
 
 const MyPageMyprofile = () => {
+	const [userId, setUserId] = useState<string>('');
 	const [email, setEmail] = useState<string>('');
 	const [nickname, setNickname] = useState<string>('');
 	const [phoneNumber, setPhoneNumber] = useState<string>('');
 	const inputRef = useRef<HTMLInputElement | null>(null);
+	const [phonePromotionAgreed, setPhonePromotionAgreed] = useState<boolean>(false);
+	const [emailPromotionAgreed, setEmailPromotionAgreed] = useState<boolean>(false);
 
 	useEffect(() => {
 		const savedUser = localStorage.getItem("user");
 
 		if (savedUser) {
 			const user = JSON.parse(savedUser).user;
+			setUserId(user.user_id);
 			setEmail(user.email);
 			setNickname(user.nickname);
 			setPhoneNumber(user.phone_number);
-		}
+		}		
 	}, []);
+
+
+	const handlePhonePromotionAgreedChange = async () => {
+		try {
+		// 스위치 변경 시 /api/auth/update/promotion_agreed/phone/ 엔드포인트로 PUT 요청 보내기
+		await putData('/api/auth/update/promotion_agreed/phone/', {
+			user_id: userId,
+			phone_promotion_agreed: !phonePromotionAgreed,
+		});
+		// 스위치 값 업데이트
+		setPhonePromotionAgreed(!phonePromotionAgreed);
+		} catch (error) {
+			console.error('Error updating phone promotion agreed:', error);
+		}
+	};
+
+	const handleEmailPromotionAgreedChange = async () => {
+		try {
+		// 스위치 변경 시 /api/auth/update/promotion_agreed/email/ 엔드포인트로 PUT 요청 보내기
+		await putData('/api/auth/update/promotion_agreed/email/', {
+			user_id: userId,
+			email_promotion_agreed: !emailPromotionAgreed,
+		});
+		// 스위치 값 업데이트
+		setEmailPromotionAgreed(!emailPromotionAgreed);
+		} catch (error) {
+		console.error('Error updating email promotion agreed:', error);
+		}
+	};
 
 	// const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 	// 	const file = event.target.files?.[0] || null;
@@ -91,17 +124,13 @@ const MyPageMyprofile = () => {
 
 						<Heading size="md" mb={7}>프로모션 정보수신 동의</Heading>
 						<FormControl display='flex' alignItems='center' justifyContent="space-between">
-							<FormLabel mb='0'>
-								휴대전화
-							</FormLabel>
-							<Switch />
+							<FormLabel mb='0'>휴대전화</FormLabel>
+							<Switch isChecked={phonePromotionAgreed} onChange={handlePhonePromotionAgreedChange} />
 						</FormControl>
 
 						<FormControl display='flex' alignItems='center' justifyContent="space-between" mt={5}>
-							<FormLabel mb='0'>
-								이메일
-							</FormLabel>
-							<Switch />
+							<FormLabel mb='0'>이메일</FormLabel>
+							<Switch isChecked={emailPromotionAgreed} onChange={handleEmailPromotionAgreedChange} />
 						</FormControl>
 							
 					</CardBody>

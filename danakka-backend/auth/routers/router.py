@@ -360,7 +360,7 @@ def auth_user_send_email(
 
 
 
-@router.put(f"/api/{app_name}/update/promotion_agreed/phone/{{user_id}}/")
+@router.put(f"/api/{app_name}/update/promotion_agreed/phone/")
 def auth_user_update_phone_promotion_agreed(
 	user_id: int, 
 	phone_promotion_agreed: bool,
@@ -383,7 +383,7 @@ def auth_user_update_phone_promotion_agreed(
 
 
 
-@router.put(f"/api/{app_name}/update/promotion_agreed/email/{{user_id}}/")
+@router.put(f"/api/{app_name}/update/promotion_agreed/email/")
 def auth_user_update_email_promotion_agreed(
 	user_id: int, 
 	email_promotion_agreed: bool,
