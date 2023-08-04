@@ -359,13 +359,17 @@ def auth_user_send_email(
 		)
 
 
+class AuthUserUpdatePhonePromotionAgreed(BaseModel):
+	user_id: str
+	phone_promotion_agreed: str
 
 @router.put(f"/api/{app_name}/update/promotion_agreed/phone/")
 def auth_user_update_phone_promotion_agreed(
-	user_id: int, 
-	phone_promotion_agreed: bool,
+	auth_user_update_phone_promotion_agreed_base_model: AuthUserUpdatePhonePromotionAgreed,
 	db: Session = Depends(get_db)
 ):
+	user_id = auth_user_update_phone_promotion_agreed_base_model.user_id
+	phone_promotion_agreed = auth_user_update_phone_promotion_agreed_base_model.phone_promotion_agreed
         # Query the AuthUser by user_id
 	user = db.query(models.AuthUser).filter(models.AuthUser.id == user_id).first()
 
@@ -382,14 +386,18 @@ def auth_user_update_phone_promotion_agreed(
 	return user
 
 
+class AuthUserUpdateEmailPromotionAgreed(BaseModel):
+	user_id: str
+	phone_promotion_agreed: str
 
 @router.put(f"/api/{app_name}/update/promotion_agreed/email/")
 def auth_user_update_email_promotion_agreed(
-	user_id: int, 
-	email_promotion_agreed: bool,
+	auth_user_update_email_promotion_agreed_base_model: AuthUserUpdateEmailPromotionAgreed,
 	db: Session = Depends(get_db)
 ):
-        # Query the AuthUser by user_id
+	user_id = auth_user_update_email_promotion_agreed_base_model.user_id
+	email_promotion_agreed = auth_user_update_email_promotion_agreed_base_model.phone_promotion_agreed
+
 	user = db.query(models.AuthUser).filter(models.AuthUser.id == user_id).first()
 
 	if not user:
