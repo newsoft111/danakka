@@ -48,13 +48,14 @@ const MyPageMyprofile = () => {
 
 	const handlePhonePromotionAgreedChange = async () => {
 		try {
-		// 스위치 변경 시 /api/auth/update/promotion_agreed/phone/ 엔드포인트로 PUT 요청 보내기
-		await putData('/api/auth/update/promotion_agreed/phone/', {
-			user_id: userId,
-			phone_promotion_agreed: !phonePromotionAgreed,
-		});
-		// 스위치 값 업데이트
+			console.log({user_id: userId, phone_promotion_agreed: !phonePromotionAgreed})
+			await putData('/api/auth/update/promotion_agreed/phone/', {
+				user_id: userId,
+				phone_promotion_agreed: !phonePromotionAgreed
+			});
+
 		setPhonePromotionAgreed(!phonePromotionAgreed);
+
 		} catch (error) {
 			console.error('Error updating phone promotion agreed:', error);
 		}

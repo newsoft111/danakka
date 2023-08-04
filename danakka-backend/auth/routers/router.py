@@ -370,14 +370,12 @@ def auth_user_update_phone_promotion_agreed(
 ):
 	user_id = auth_user_update_phone_promotion_agreed_base_model.user_id
 	phone_promotion_agreed = auth_user_update_phone_promotion_agreed_base_model.phone_promotion_agreed
-        # Query the AuthUser by user_id
+	print(phone_promotion_agreed)
 	user = db.query(models.AuthUser).filter(models.AuthUser.id == user_id).first()
 
-        # If the user does not exist, raise an HTTPException with status code 404
 	if not user:
 		raise HTTPException(status_code=404, detail="User not found")
 
-        # Update the phone_promotion_agreed value
 	user.auth_promotion_agreement.phone_promotion_agreed = phone_promotion_agreed
 
 	db.commit()
@@ -388,7 +386,7 @@ def auth_user_update_phone_promotion_agreed(
 
 class AuthUserUpdateEmailPromotionAgreed(BaseModel):
 	user_id: str
-	phone_promotion_agreed: bool
+	email_promotion_agreed: bool
 
 @router.put(f"/api/{app_name}/update/promotion_agreed/email/")
 def auth_user_update_email_promotion_agreed(
@@ -396,7 +394,7 @@ def auth_user_update_email_promotion_agreed(
 	db: Session = Depends(get_db)
 ):
 	user_id = auth_user_update_email_promotion_agreed_base_model.user_id
-	email_promotion_agreed = auth_user_update_email_promotion_agreed_base_model.phone_promotion_agreed
+	email_promotion_agreed = auth_user_update_email_promotion_agreed_base_model.email_promotion_agreed
 
 	user = db.query(models.AuthUser).filter(models.AuthUser.id == user_id).first()
 
