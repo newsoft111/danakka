@@ -40,3 +40,9 @@ export async function postData<T>(url: string, params: any): Promise<T | undefin
 	const response = await api.post(url, params);
 	return response.data;
 }
+
+
+export async function putData<T>(url: string, params: any): Promise<T | undefined> {
+	const response = await api.put(url, params);
+	return response.data;
+}

@@ -74,11 +74,11 @@ def get_current_user_info(
         return {
 			"status_code":200,
 			"detail": {
+				"user_id": user_id,
                 "email": user.email,
                 "nickname": user.nickname,
                 "phone_number":user.phone_number
             },
-            "user_id": user_id
 		}
     
     except jwt.ExpiredSignatureError:

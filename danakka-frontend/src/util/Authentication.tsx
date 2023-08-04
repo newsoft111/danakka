@@ -9,6 +9,7 @@ export async function verifyToken() {
 		const data = await postData('/api/auth/verify_token/', { token: accessToken })
 
 		if (data) {
+			console.log(data)
 			localStorage.setItem("user", JSON.stringify(data));
 			return data;
 		} else {
