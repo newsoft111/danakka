@@ -361,7 +361,7 @@ def auth_user_send_email(
 
 class AuthUserUpdatePhonePromotionAgreed(BaseModel):
 	user_id: str
-	phone_promotion_agreed: str
+	phone_promotion_agreed: bool
 
 @router.put(f"/api/{app_name}/update/promotion_agreed/phone/")
 def auth_user_update_phone_promotion_agreed(
@@ -388,7 +388,7 @@ def auth_user_update_phone_promotion_agreed(
 
 class AuthUserUpdateEmailPromotionAgreed(BaseModel):
 	user_id: str
-	phone_promotion_agreed: str
+	phone_promotion_agreed: bool
 
 @router.put(f"/api/{app_name}/update/promotion_agreed/email/")
 def auth_user_update_email_promotion_agreed(
