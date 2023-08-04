@@ -12,7 +12,7 @@ import AuthContext from '../context/AuthContext';
 import CenterSnipper from "../component/Common/CenterSnipper";
 import '@fontsource/noto-sans-kr/400.css'
 import '@fontsource/noto-sans-kr/700.css'
-import { verifyToken } from '../util/Authentication'; 
+import AuthManager from '../util/Authentication'; 
 
 export function Providers({ 
     children 
@@ -30,7 +30,7 @@ export function Providers({
 	useEffect(() => {
 		const verifyUser = async () => {
 		try {
-			const user = await verifyToken();
+			const user = await AuthManager.verifyToken();
 			if (user) {
 			setIsLoggedIn(true);
 			} else {

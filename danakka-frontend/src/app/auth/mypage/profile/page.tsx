@@ -21,8 +21,16 @@ import MyPageNavBar from "../../../../component/Layout/Auth/MyPage/NavBar";
 import ProfileEditEmailField from "../../../../component/Authentication/Profile/Edit/EmailField"
 import ProfileEditNickNameField from "../../../../component/Authentication/Profile/Edit/NickNameField"
 import ProfileEditPhoneNumberField from "../../../../component/Authentication/Profile/Edit/PhoneNumberField"
+import AuthManager from '../../../../util/Authentication';
+import { setegid } from "process";
 
 
+interface UserInfo {
+	promotion_agreement: {
+		phone_promotion_agreed: boolean;
+		email_promotion_agreed: boolean;
+	};
+}
 
 const MyPageMyprofile = () => {
 	const [userId, setUserId] = useState<string>('');
@@ -32,6 +40,7 @@ const MyPageMyprofile = () => {
 	const inputRef = useRef<HTMLInputElement | null>(null);
 	const [phonePromotionAgreed, setPhonePromotionAgreed] = useState<boolean>(false);
 	const [emailPromotionAgreed, setEmailPromotionAgreed] = useState<boolean>(false);
+	const token = localStorage.getItem('accessToken');
 
 	useEffect(() => {
 		const savedUser = localStorage.getItem("user");
@@ -43,14 +52,29 @@ const MyPageMyprofile = () => {
 			setNickname(user.nickname);
 			setPhoneNumber(user.phone_number);
 		}		
+
+
+		const getUserInfo = async () => {
+			const needsDataValue = ['promotion_agreement'];
+
+			let promotionAgreement = await AuthManager.getUserInfo<UserInfo>(needsDataValue);
+
+			if (promotionAgreement) {
+				setPhonePromotionAgreed(promotionAgreement.promotion_agreement.phone_promotion_agreed);
+				setEmailPromotionAgreed(promotionAgreement.promotion_agreement.email_promotion_agreed);
+			}
+			
+			
+		}
+		getUserInfo();
+
 	}, []);
 
 
 	const handlePhonePromotionAgreedChange = async () => {
 		try {
-			console.log({user_id: userId, phone_promotion_agreed: !phonePromotionAgreed})
 			await putData('/api/auth/update/promotion_agreed/phone/', {
-				user_id: userId,
+				token: token,
 				phone_promotion_agreed: !phonePromotionAgreed
 			});
 
@@ -60,18 +84,19 @@ const MyPageMyprofile = () => {
 			console.error('Error updating phone promotion agreed:', error);
 		}
 	};
+	
 
 	const handleEmailPromotionAgreedChange = async () => {
 		try {
 		// 스위치 변경 시 /api/auth/update/promotion_agreed/email/ 엔드포인트로 PUT 요청 보내기
 		await putData('/api/auth/update/promotion_agreed/email/', {
-			user_id: userId,
+			token: token,
 			email_promotion_agreed: !emailPromotionAgreed,
 		});
 		// 스위치 값 업데이트
 		setEmailPromotionAgreed(!emailPromotionAgreed);
 		} catch (error) {
-		console.error('Error updating email promotion agreed:', error);
+			console.error('Error updating email promotion agreed:', error);
 		}
 	};
 
