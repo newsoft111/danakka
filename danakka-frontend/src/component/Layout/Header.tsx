@@ -18,7 +18,7 @@ import AuthContext from '../../context/AuthContext';
 import { FiBell, FiMenu, FiMoon, FiSun, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
 import JoinModal from '../Authentication/JoinModal';
-import { Logout } from '../../util/Authentication'; // verifyToken 함수 임포트
+import AuthManager from '../../util/Authentication'; // verifyToken 함수 임포트
 import NextLink from 'next/link';
 
 
@@ -110,7 +110,7 @@ const Header = () => {
 						<MenuDivider />
 						<MenuItem as={NextLink} href='/auth/mypage/ticket'>티켓 : 100장</MenuItem>
 						<MenuDivider />
-						<MenuItem onClick={Logout}>로그아웃</MenuItem>
+						<MenuItem onClick={AuthManager.logout}>로그아웃</MenuItem>
 							
 					</MenuList>
 				</Menu>

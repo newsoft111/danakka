@@ -91,6 +91,62 @@ def auth_user_login(
 
 
 
+class AuthUserChangePasswordModel(BaseModel):
+	token: str
+	current_password: str
+	new_password: str
+	new_password_check: str
+
+@router.post(f"/api/{app_name}/change/password/")
+def auth_user_change_password(
+		auth_user_change_password_base_model: AuthUserChangePasswordModel,
+		db: Session = Depends(get_db)
+	):
+	current_password = auth_user_change_password_base_model.current_password
+	new_password = auth_user_change_password_base_model.new_password
+	new_password_check = auth_user_change_password_base_model.new_password_check
+
+	current_user = get_current_user_info(auth_user_change_password_base_model.token, db)
+	if current_user["status_code"] != 200:
+		raise HTTPException(
+			status_code=current_user["status_code"],
+			detail=current_user["detail"],
+			headers={"WWW-Authenticate": "Bearer"},
+		)
+	
+	if new_password != new_password_check:
+		raise HTTPException(
+			status_code=401, 
+			detail="비밀번호가 일치하지 않습니다."
+		)
+
+
+	# 사용자 인증
+	auth_user = authenticate_user(current_user['detail']['email'], current_password, db)
+	if not auth_user:
+		raise HTTPException(
+			status_code=401, 
+			detail="비밀번호를 잘못 입력했습니다."
+		)
+	
+
+	password_hash = Hasher.get_password_hash(new_password)
+
+	# 사용자의 비밀번호 필드에 새로운 해시값 저장
+	auth_user.password = password_hash
+
+	# 데이터베이스에 변경 사항 반영
+	db.commit()
+
+	return {
+		"status_code":200,
+		"detail": "변경이 완료되었습니다.",
+	}
+
+
+
+
+
 class AuthUserVerifiTokenBaseModel(BaseModel):
 	token: str
 
@@ -131,7 +187,6 @@ def auth_user_get_user_info(
 				'phone_promotion_agreed': user_obj.auth_promotion_agreement.phone_promotion_agreed,
 				'email_promotion_agreed': user_obj.auth_promotion_agreement.email_promotion_agreed,
 			}
-		print(data_to_return)
 		return data_to_return
 	else:
 		raise HTTPException(

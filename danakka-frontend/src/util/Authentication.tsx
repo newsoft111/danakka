@@ -40,7 +40,7 @@ class AuthManager {
 	  }
 	}
 
-	Logout() {
+	logout() {
 		localStorage.removeItem('accessToken');
 		window.location.href = '/';
 	}
