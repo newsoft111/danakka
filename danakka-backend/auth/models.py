@@ -18,6 +18,42 @@ class AuthUser(Base):
 	created_at = Column(DateTime, default=datetime.now(local_timezone))
 
 	auth_promotion_agreement = relationship("AuthPromotionAgreement", back_populates="auth_user", uselist=False)
+	auth_user_ticket = relationship("AuthUserTicket", back_populates="auth_user")
+	auth_user_ticket_usage_history = relationship("AuthUserTicketUsageHistory", back_populates="auth_user")
+	auth_user_ticket_purchase_history = relationship("AuthUserTicketPurchaseHistory", back_populates="auth_user")
+
+
+class AuthUserTicket(Base):
+    __tablename__ = "auth_user_ticket"
+
+    id = Column(Integer, primary_key=True, index=True)
+    auth_user_id = Column(Integer, ForeignKey("auth_user.id"))
+    ticket_count = Column(Integer, default=0)
+
+    auth_user = relationship("AuthUser", back_populates="auth_user_ticket")
+    
+
+class AuthUserTicketUsageHistory(Base):
+    __tablename__ = "auth_user_ticket_usage_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    auth_user_id = Column(Integer, ForeignKey("auth_user.id"))
+    ticket_count_used = Column(Integer)
+    usage_reason = Column(String)
+    used_at = Column(DateTime, default=datetime.now(local_timezone))
+
+    auth_user = relationship("AuthUser", back_populates="auth_user_ticket_usage_history")
+    
+
+class AuthUserTicketPurchaseHistory(Base):
+    __tablename__ = "auth_user_ticket_purchase_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    auth_user_id = Column(Integer, ForeignKey("auth_user.id"))
+    ticket_count_purchased = Column(Integer)
+    purchased_at = Column(DateTime, default=datetime.now(local_timezone))
+
+    auth_user = relationship("AuthUser", back_populates="auth_user_ticket_purchase_history")
 
 
 class AuthPromotionAgreement(Base):
