@@ -9,16 +9,18 @@ from typing import List, Optional, Union
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from util.timezone import get_local_timezone
-from auth.security import authenticate_user, create_access_token, get_current_user_info
+from auth.security import get_current_user_info
+import requests
+
 
 router = APIRouter()
 local_timezone = get_local_timezone()
 app_name = 'payment'
-
+PORTONE_API_KEY = '123123'
 
 class PaymentCreateBaseModel(BaseModel):
 	token: str
-	payment_id: str
+	merchant_uid: str
 	order_name: str
 	total_amount: str
 
@@ -46,7 +48,7 @@ async def payment_create(
 	# Create a new Payment instance
 	new_payment = PaymentModel.Payment(
 		auth_user_id=user.id,
-		payment_uuid=payment_create_base_model.payment_id,
+		merchant_uid=payment_create_base_model.merchant_uid,
 		order_name=payment_create_base_model.order_name,
 		total_amount=payment_create_base_model.total_amount,
 		is_paid=False,  # Payment is not paid yet
@@ -62,3 +64,60 @@ async def payment_create(
 		"status_code":200,
 		"detail": "결제 전처리 완료.",
 	}
+
+
+
+
+class PaymentWebhookBaseModel(BaseModel):
+	merchant_uid: str
+
+
+@router.post(f"/api/{app_name}/complete/")
+async def payment_create(
+		payment_create_base_model: PaymentCreateBaseModel,
+		db: Session = Depends(get_db)
+	):
+	
+
+	try:
+		paymentId = payment_create_base_model.merchant_uid
+
+		# Retrieve payment info from PortOne API
+		signin_response = requests.post(
+			"https://api.portone.io/v2/signin/api-key",
+			json={"api_key": PORTONE_API_KEY},
+			headers={"Content-Type": "application/json"}
+		)
+		access_token = signin_response.json()["access_token"]
+
+		payment_response = requests.get(
+			f"https://api.portone.io/v2/payments/{paymentId}",
+			headers={"Authorization": f"Bearer {access_token}"}
+		)
+		payment_data = payment_response.json()
+		payment = payment_data["payment"]
+		transactions = payment["transactions"]
+		transaction = next((tx for tx in transactions if tx["is_primary"]), None)
+		if transaction is None:
+			raise HTTPException(status_code=400, detail="No primary transaction found")
+
+		# Compare payment amount with transaction amount
+		payment_obj = db.query(PaymentModel.Payment).filter(PaymentModel.Payment.merchant_uid == paymentId).first()
+
+		if not payment_obj:
+			raise HTTPException(status_code=404, detail="Invalid request.")
+
+		if payment_obj.total_amount == transaction["amount"]["total"]:
+			payment_obj.is_paid = True
+			db.commit()
+			return {
+				"status_code": 200,
+				"detail": "Payment post-processing completed.",
+			}
+		else:
+			raise HTTPException(status_code=400, detail="Payment amount mismatch.")
+
+	except requests.exceptions.RequestException as e:
+		raise HTTPException(status_code=400, detail="Failed to process payment.", headers={"WWW-Authenticate": "Bearer"})
+	except Exception as e:
+		raise HTTPException(status_code=500, detail="An error occurred while processing the payment.")
