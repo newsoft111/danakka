@@ -16,8 +16,7 @@ class Payment(Base):
 	payment_uuid = Column(String)
 	order_name = Column(String)
 	total_amount = Column(Numeric(precision=10, scale=2))
-	is_paid = Column(bool, default=False)
+	is_paid = Column(Boolean, default=False)
 	created_at = Column(DateTime, default=datetime.now(local_timezone))
 	paid_at = Column(DateTime, nullable=True)
 
-	auth_user = relationship("AuthModels.AuthUser", back_populates="payment")
