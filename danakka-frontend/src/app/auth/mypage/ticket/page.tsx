@@ -45,20 +45,37 @@ const MyPageTicket = () => {
 	const [paymentMethod, setPaymentMethod] = useState("card");
 
 	const handleInputChange = (valueAsString: string, valueAsNumber: number) => {
-		if (!valueAsString) {
+
+		if (valueAsNumber) {
 			setCount(valueAsNumber);
 		}
 	};
 
+	type PayMethod = 'CARD' | 'VIRTUAL_ACCOUNT' | 'TRANSFER' | 'MOBILE' | 'GIFT_CERTIFICATE' | 'EASY_PAY' | 'PAYPAL';
+
+
 	const requestPayment = () => {
+		let channelKey = "channel-key-87675bb2-53ab-4654-a7a6-4aa4a3c60ae4";
+		let payMethod: PayMethod = 'CARD';
+
+
+		if (paymentMethod === "card") {
+			channelKey = "channel-key-87675bb2-53ab-4654-a7a6-4aa4a3c60ae4";
+			payMethod = "CARD";
+		} else if (paymentMethod === "kakao") {
+			channelKey = "channel-key-5bcf4605-5a92-4e14-a029-6582e63bc5ab";
+			payMethod = "EASY_PAY";
+		}
+
 		PortOne.requestPayment({
 			storeId: 'store-0d0fe347-57a0-4059-bbac-4dadd79b9739', // 가맹점 storeId로 변경해주세요.
 			paymentId: 'paymentId_{now()}',
 			orderName: '나이키 와플 트레이너 2 SD',
 			totalAmount: 1000,
 			currency: 'CURRENCY_KRW',
-			channelKey: 'channel-key-2c6d1ade-9c11-4ac2-8fb1-a3c85e72a90d', // 콘솔 결제 연동 화면에서 채널 연동 시 생성된 채널 키를 입력해주세요.
-			payMethod: "CARD"
+			channelKey: channelKey,
+    		payMethod: payMethod,
+			pgProvider: 'PG_PROVIDER_TOSSPAYMENTS'
 		});
 	  }
 
