@@ -16,7 +16,7 @@ import requests
 router = APIRouter()
 local_timezone = get_local_timezone()
 app_name = 'payment'
-PORTONE_API_KEY = '123123'
+PORTONE_API_KEY = 'ZgmeM5criaKg0tOjVTjjeXwlvbM3DqZu0WG3OPUn8hKSP3oTQYqTq9QdSywtmrXm2xuLZ38NJSnDnuWp'
 
 class PaymentCreateBaseModel(BaseModel):
 	token: str
@@ -39,7 +39,7 @@ async def payment_create(
 		)
 
 
-		# Retrieve user from the database based on user_id
+	# Retrieve user from the database based on user_id
 	user = db.query(AuthModel.AuthUser).filter(AuthModel.AuthUser.id == current_user['user_id']).first()
 
 	if not user:
@@ -68,19 +68,19 @@ async def payment_create(
 
 
 
-class PaymentWebhookBaseModel(BaseModel):
+class PaymentCompleteBaseModel(BaseModel):
 	merchant_uid: str
 
 
 @router.post(f"/api/{app_name}/complete/")
-async def payment_create(
-		payment_create_base_model: PaymentCreateBaseModel,
+async def payment_complete(
+		payment_complete_base_model: PaymentCompleteBaseModel,
 		db: Session = Depends(get_db)
 	):
 	
 
 	try:
-		paymentId = payment_create_base_model.merchant_uid
+		paymentId = payment_complete_base_model.merchant_uid
 
 		# Retrieve payment info from PortOne API
 		signin_response = requests.post(
