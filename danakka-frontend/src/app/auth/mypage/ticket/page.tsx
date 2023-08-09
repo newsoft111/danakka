@@ -47,7 +47,7 @@ const MyPageTicket = () => {
 	const [orderName, setOrderName] = useState("");
 	const [totalAmount, setTotalAmount] = useState<number>(0);
 	const token = localStorage.getItem('accessToken');
-
+	const toast = useToast();
 	const handleInputChange = (valueAsString: string, valueAsNumber: number) => {
 
 		if (valueAsNumber) {
@@ -61,7 +61,7 @@ const MyPageTicket = () => {
 	const requestPayment = async () => {
 		let channelKey = "channel-key-87675bb2-53ab-4654-a7a6-4aa4a3c60ae4";
 		let payMethod: PayMethod = 'CARD';
-		const toast = useToast();
+		
 		setOrderName(`티켓 ${count}개`);
 		setTotalAmount(count*100);
 
