@@ -12,7 +12,7 @@ class Payment(Base):
 
 	id = Column(Integer, primary_key=True, index=True)
 	auth_user_id = Column(Integer, ForeignKey("auth_user.id"))
-	payment_id = Column(Integer)
+	payment_uuid = Column(String)
 	order_name = Column(String)
 	total_amount = Column(Numeric(precision=10, scale=2))
 	is_paid = Column(bool, default=False)

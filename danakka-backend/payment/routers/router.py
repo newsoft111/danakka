@@ -46,7 +46,7 @@ async def payment_create(
 	# Create a new Payment instance
 	new_payment = PaymentModel.Payment(
 		auth_user_id=user.id,
-		payment_id=payment_create_base_model.payment_id,
+		payment_uuid=payment_create_base_model.payment_id,
 		order_name=payment_create_base_model.order_name,
 		total_amount=payment_create_base_model.total_amount,
 		is_paid=False,  # Payment is not paid yet
