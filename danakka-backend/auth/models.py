@@ -22,7 +22,7 @@ class AuthUser(Base):
 	auth_user_ticket_usage_history = relationship("AuthUserTicketUsageHistory", back_populates="auth_user")
 	auth_user_ticket_purchase_history = relationship("AuthUserTicketPurchaseHistory", back_populates="auth_user")
 
-
+	auth_user_payment = relationship("Payment", back_populates="auth_user")
 
 
 class AuthUserTicket(Base):

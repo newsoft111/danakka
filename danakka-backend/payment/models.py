@@ -3,12 +3,12 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 from util.timezone import get_local_timezone
-import auth.models as AuthModels
+from auth.models import Base as AuthBase
 
 local_timezone = get_local_timezone()
 Base = declarative_base()
 
-class Payment(Base):
+class Payment(AuthBase):
 	__tablename__ = "payment"
 
 	id = Column(Integer, primary_key=True, index=True)
@@ -20,4 +20,4 @@ class Payment(Base):
 	created_at = Column(DateTime, default=datetime.now(local_timezone))
 	paid_at = Column(DateTime, nullable=True)
 
-	auth_user = relationship(AuthModels.AuthUser, back_populates="payment")
+	auth_user = relationship("AuthUser", back_populates="auth_user_payment")
