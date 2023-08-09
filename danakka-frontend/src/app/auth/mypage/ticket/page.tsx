@@ -78,17 +78,12 @@ const MyPageTicket = () => {
 		const paymentId = uuidv4();  // 새로운 UUID 생성
 
 		try {
-			console.log({
-				token: token,
-				merchant_uid: paymentId,
-				order_name: orderName,
-				total_amount: totalAmount
-			})
 			const data = await postData('/api/payment/create/', {
 				token: token,
 				merchant_uid: paymentId,
 				order_name: orderName,
-				total_amount: totalAmount
+				total_amount: totalAmount,
+				pay_method: payMethod
 			});
 			
 			if (data) {

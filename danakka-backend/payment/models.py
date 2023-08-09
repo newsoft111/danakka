@@ -17,6 +17,7 @@ class Payment(AuthBase):
 	order_name = Column(String)
 	total_amount = Column(Numeric(precision=10, scale=2))
 	is_paid = Column(Boolean, default=False)
+	pay_method = Column(String)
 	created_at = Column(DateTime, default=datetime.now(local_timezone))
 	paid_at = Column(DateTime, nullable=True)
 

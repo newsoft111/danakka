@@ -5,13 +5,13 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 from db.connection import get_db
 from sqlalchemy import func
 from pydantic import BaseModel, conint
-from typing import List, Optional, Union
+from decimal import Decimal
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from util.timezone import get_local_timezone
 from auth.security import get_current_user_info
 import requests
-from fastapi import Request
+
 
 router = APIRouter()
 local_timezone = get_local_timezone()
@@ -22,7 +22,8 @@ class PaymentCreateBaseModel(BaseModel):
 	token: str
 	merchant_uid: str
 	order_name: str
-	total_amount: str
+	total_amount: Decimal
+	pay_method: str
 
 @router.post(f"/api/{app_name}/create/")
 async def payment_create(
@@ -51,6 +52,7 @@ async def payment_create(
 		merchant_uid=payment_create_base_model.merchant_uid,
 		order_name=payment_create_base_model.order_name,
 		total_amount=payment_create_base_model.total_amount,
+		pay_method=payment_create_base_model.pay_method,
 		is_paid=False,  # Payment is not paid yet
 		created_at=datetime.now(),
 		paid_at=None  # Payment has not been paid yet
@@ -69,22 +71,24 @@ async def payment_create(
 
 
 class PaymentCompleteBaseModel(BaseModel):
-	imp_uid: str
-	merchant_uid: str
+	tx_id: str
+	payment_id: str
 	status: str
 
 @router.post(f"/api/{app_name}/complete/")
 async def payment_complete(
 		payment_complete_base_model: PaymentCompleteBaseModel,
-		raw_request_data: Request,
 		db: Session = Depends(get_db)
 	):
 	
-	raw_data = await raw_request_data.json()
-	print("Raw Request Data:", raw_data)
 
-	paymentId = payment_complete_base_model.merchant_uid
 
+	paymentId = payment_complete_base_model.payment_id
+	status = payment_complete_base_model.status
+
+	if status != "PAID":
+		raise HTTPException(status_code=400, detail="결제가 완료되지 않았음.")
+	
 	# Retrieve payment info from PortOne API
 	signin_response = requests.post(
 		"https://api.portone.io/v2/signin/api-key",
@@ -98,7 +102,7 @@ async def payment_complete(
 		headers={"Authorization": f"Bearer {access_token}"}
 	)
 	payment_data = payment_response.json()
-	print(payment_data)
+	
 	payment = payment_data["payment"]
 	transactions = payment["transactions"]
 	transaction = next((tx for tx in transactions if tx["is_primary"]), None)
