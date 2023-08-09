@@ -11,7 +11,7 @@ from dateutil.relativedelta import relativedelta
 from util.timezone import get_local_timezone
 from auth.security import get_current_user_info
 import requests
-
+from fastapi import Request
 
 router = APIRouter()
 local_timezone = get_local_timezone()
@@ -69,16 +69,19 @@ async def payment_create(
 
 
 class PaymentCompleteBaseModel(BaseModel):
+	imp_uid: str
 	merchant_uid: str
-
+	status: str
 
 @router.post(f"/api/{app_name}/complete/")
 async def payment_complete(
 		payment_complete_base_model: PaymentCompleteBaseModel,
+		raw_request_data: Request,
 		db: Session = Depends(get_db)
 	):
 	
-
+	raw_data = await raw_request_data.json()
+	print("Raw Request Data:", raw_data)
 
 	paymentId = payment_complete_base_model.merchant_uid
 
