@@ -79,45 +79,42 @@ async def payment_complete(
 	):
 	
 
-	try:
-		paymentId = payment_complete_base_model.merchant_uid
 
-		# Retrieve payment info from PortOne API
-		signin_response = requests.post(
-			"https://api.portone.io/v2/signin/api-key",
-			json={"api_key": PORTONE_API_KEY},
-			headers={"Content-Type": "application/json"}
-		)
-		access_token = signin_response.json()["access_token"]
+	paymentId = payment_complete_base_model.merchant_uid
 
-		payment_response = requests.get(
-			f"https://api.portone.io/v2/payments/{paymentId}",
-			headers={"Authorization": f"Bearer {access_token}"}
-		)
-		payment_data = payment_response.json()
-		payment = payment_data["payment"]
-		transactions = payment["transactions"]
-		transaction = next((tx for tx in transactions if tx["is_primary"]), None)
-		if transaction is None:
-			raise HTTPException(status_code=400, detail="No primary transaction found")
+	# Retrieve payment info from PortOne API
+	signin_response = requests.post(
+		"https://api.portone.io/v2/signin/api-key",
+		json={"api_key": PORTONE_API_KEY},
+		headers={"Content-Type": "application/json"}
+	)
+	access_token = signin_response.json()["access_token"]
 
-		# Compare payment amount with transaction amount
-		payment_obj = db.query(PaymentModel.Payment).filter(PaymentModel.Payment.merchant_uid == paymentId).first()
+	payment_response = requests.get(
+		f"https://api.portone.io/v2/payments/{paymentId}",
+		headers={"Authorization": f"Bearer {access_token}"}
+	)
+	payment_data = payment_response.json()
+	print(payment_data)
+	payment = payment_data["payment"]
+	transactions = payment["transactions"]
+	transaction = next((tx for tx in transactions if tx["is_primary"]), None)
+	if transaction is None:
+		raise HTTPException(status_code=400, detail="No primary transaction found")
 
-		if not payment_obj:
-			raise HTTPException(status_code=404, detail="Invalid request.")
+	# Compare payment amount with transaction amount
+	payment_obj = db.query(PaymentModel.Payment).filter(PaymentModel.Payment.merchant_uid == paymentId).first()
 
-		if payment_obj.total_amount == transaction["amount"]["total"]:
-			payment_obj.is_paid = True
-			db.commit()
-			return {
-				"status_code": 200,
-				"detail": "Payment post-processing completed.",
-			}
-		else:
-			raise HTTPException(status_code=400, detail="Payment amount mismatch.")
+	if not payment_obj:
+		raise HTTPException(status_code=404, detail="Invalid request.")
 
-	except requests.exceptions.RequestException as e:
-		raise HTTPException(status_code=400, detail="Failed to process payment.", headers={"WWW-Authenticate": "Bearer"})
-	except Exception as e:
-		raise HTTPException(status_code=500, detail="An error occurred while processing the payment.")
+	if payment_obj.total_amount == transaction["amount"]["total"]:
+		payment_obj.is_paid = True
+		db.commit()
+		return {
+			"status_code": 200,
+			"detail": "Payment post-processing completed.",
+		}
+	else:
+		raise HTTPException(status_code=400, detail="Payment amount mismatch.")
+
