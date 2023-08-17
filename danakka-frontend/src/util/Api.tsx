@@ -9,7 +9,7 @@ const api = axios.create({
 
 
 
-export async function getData<T>(url: string, params: any): Promise<T | undefined> {
+export async function getData<T>(url: string, params: any, headers?: any): Promise<T | undefined> {
   
   try {
     const removeEmptyParams = (obj: any) => {
@@ -36,13 +36,13 @@ export async function getData<T>(url: string, params: any): Promise<T | undefine
   }
 }
 
-export async function postData<T>(url: string, params: any): Promise<T | undefined> {
+export async function postData<T>(url: string, params: any, headers?: any): Promise<T | undefined> {
 	const response = await api.post(url, params);
 	return response.data;
 }
 
 
-export async function putData<T>(url: string, params: any): Promise<T | undefined> {
+export async function putData<T>(url: string, params: any, headers?: any): Promise<T | undefined> {
 	const response = await api.put(url, params);
 	return response.data;
 }

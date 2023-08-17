@@ -9,7 +9,7 @@ from typing import List, Optional
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from ..hashing import Hasher
-from ..security import authenticate_user, create_access_token, get_current_user_info
+from ..security import authenticate_user, create_access_token, get_authenticated_user
 import random
 import string
 from util.sms_module import SmsSender
@@ -92,7 +92,6 @@ def auth_user_login(
 
 
 class AuthUserChangePasswordModel(BaseModel):
-	token: str
 	current_password: str
 	new_password: str
 	new_password_check: str
@@ -100,19 +99,14 @@ class AuthUserChangePasswordModel(BaseModel):
 @router.post(f"/api/{app_name}/change/password/")
 def auth_user_change_password(
 		auth_user_change_password_base_model: AuthUserChangePasswordModel,
+		authorized_user: models.AuthUser = Depends(get_authenticated_user),
 		db: Session = Depends(get_db)
 	):
+
 	current_password = auth_user_change_password_base_model.current_password
 	new_password = auth_user_change_password_base_model.new_password
 	new_password_check = auth_user_change_password_base_model.new_password_check
 
-	current_user = get_current_user_info(auth_user_change_password_base_model.token, db)
-	if current_user["status_code"] != 200:
-		raise HTTPException(
-			status_code=current_user["status_code"],
-			detail=current_user["detail"],
-			headers={"WWW-Authenticate": "Bearer"},
-		)
 	
 	if new_password != new_password_check:
 		raise HTTPException(
@@ -122,7 +116,7 @@ def auth_user_change_password(
 
 
 	# 사용자 인증
-	auth_user = authenticate_user(current_user['detail']['email'], current_password, db)
+	auth_user = authenticate_user(authorized_user.email, current_password, db)
 	if not auth_user:
 		raise HTTPException(
 			status_code=401, 
@@ -168,52 +162,41 @@ def auth_user_verify_token(
 
 
 class AuthUserGetUserInfoBaseModel(BaseModel):
-	token: str
 	needs_data: List[str]
 
 @router.post(f"/api/{app_name}/get/user/info/")
 def auth_user_get_user_info(
     auth_user_verify_token_base_model: AuthUserGetUserInfoBaseModel,
+    authorized_user: models.AuthUser = Depends(get_authenticated_user),
     db: Session = Depends(get_db)
 ):
 	needs_data = auth_user_verify_token_base_model.needs_data
-	current_user = get_current_user_info(auth_user_verify_token_base_model.token, db)
-	if current_user["status_code"] == 200:
-		user_obj = db.query(models.AuthUser).filter(models.AuthUser.id == current_user['user_id']).first()
+	
 
-		data_to_return = {data_key: getattr(user_obj, data_key, None) for data_key in needs_data}
-		if 'promotion_agreement' in needs_data:
-			data_to_return['promotion_agreement'] = {
-				'phone_promotion_agreed': user_obj.auth_promotion_agreement.phone_promotion_agreed,
-				'email_promotion_agreed': user_obj.auth_promotion_agreement.email_promotion_agreed,
-			}
-		return data_to_return
-	else:
-		raise HTTPException(
-			status_code=status.HTTP_401_UNAUTHORIZED,
-			detail=current_user["detail"],
-			headers={"WWW-Authenticate": "Bearer"},
-		)
+	user_obj = db.query(models.AuthUser).filter(models.AuthUser.id == authorized_user.id).first()
+
+	data_to_return = {data_key: getattr(user_obj, data_key, None) for data_key in needs_data}
+	if 'promotion_agreement' in needs_data:
+		data_to_return['promotion_agreement'] = {
+			'phone_promotion_agreed': user_obj.auth_promotion_agreement.phone_promotion_agreed,
+			'email_promotion_agreed': user_obj.auth_promotion_agreement.email_promotion_agreed,
+		}
+	return data_to_return
+
 
 
 class AuthUserChangeNickname(BaseModel):
-	token: str
 	nickname: str
 
 @router.post(f"/api/{app_name}/change/nickname/")
 def auth_user_change_nickname(
 		auth_user_change_nickname_base_model: AuthUserChangeNickname,
+		authorized_user: models.AuthUser = Depends(get_authenticated_user),
 		db: Session = Depends(get_db)
 	):
 	nickname = auth_user_change_nickname_base_model.nickname
 
-	current_user = get_current_user_info(auth_user_change_nickname_base_model.token, db)
-	if current_user["status_code"] != 200:
-		raise HTTPException(
-			status_code=current_user["status_code"],
-			detail=current_user["detail"],
-			headers={"WWW-Authenticate": "Bearer"},
-		)
+	
 
 	if is_nickname_duplicate(nickname, db):
 		raise HTTPException(
@@ -229,7 +212,7 @@ def auth_user_change_nickname(
 			headers={"WWW-Authenticate": "Bearer"},
 		)
 	
-	user_obj = db.query(models.AuthUser).filter(models.AuthUser.id==current_user['user_id']).first()
+	user_obj = db.query(models.AuthUser).filter(models.AuthUser.id==authorized_user.id).first()
 	user_obj.nickname = nickname
 			
 
@@ -246,25 +229,18 @@ def auth_user_change_nickname(
 
 #전화번호변경
 class AuthUserChangePhoneNumber(BaseModel):
-	token: str
 	phone_number: str
 	verify_code: int
 
 @router.post(f"/api/{app_name}/change/phone_number/")
 def auth_user_change_phone_number(
 		auth_user_change_phone_number_base_model: AuthUserChangePhoneNumber,
+		authorized_user: models.AuthUser = Depends(get_authenticated_user),
 		db: Session = Depends(get_db)
 	):
 	phone_number = auth_user_change_phone_number_base_model.phone_number
 	verify_code = auth_user_change_phone_number_base_model.verify_code
 
-	current_user = get_current_user_info(auth_user_change_phone_number_base_model.token, db)
-	if current_user["status_code"] != 200:
-		raise HTTPException(
-			status_code=current_user["status_code"],
-			detail=current_user["detail"],
-			headers={"WWW-Authenticate": "Bearer"},
-		)
 
 	auth_sms_obj = db.query(models.AuthSms).filter(models.AuthSms.phone_number==phone_number).first()
 	if not auth_sms_obj:
@@ -281,7 +257,7 @@ def auth_user_change_phone_number(
 			headers={"WWW-Authenticate": "Bearer"},
 		)
 	
-	user_obj = db.query(models.AuthUser).filter(models.AuthUser.id==current_user['user_id']).first()
+	user_obj = db.query(models.AuthUser).filter(models.AuthUser.id==authorized_user.id).first()
 	user_obj.phone_number = phone_number
 			
 
@@ -346,25 +322,19 @@ def auth_user_send_sms(
 
 #이메일
 class AuthUserChangeEmail(BaseModel):
-	token: str
 	email: str
 	verify_code: int
 
 @router.post(f"/api/{app_name}/change/email/")
 def auth_user_change_email(
 		auth_user_change_email_base_model: AuthUserChangeEmail,
+		authorized_user: models.AuthUser = Depends(get_authenticated_user),
 		db: Session = Depends(get_db)
 	):
 	email = auth_user_change_email_base_model.email
 	verify_code = auth_user_change_email_base_model.verify_code
 
-	current_user = get_current_user_info(auth_user_change_email_base_model.token, db)
-	if current_user["status_code"] != 200:
-		raise HTTPException(
-			status_code=current_user["status_code"],
-			detail=current_user["detail"],
-			headers={"WWW-Authenticate": "Bearer"},
-		)
+	
 
 	auth_email_obj = db.query(models.AuthEmail).filter(models.AuthEmail.email==email).first()
 	if not auth_email_obj:
@@ -381,7 +351,7 @@ def auth_user_change_email(
 			headers={"WWW-Authenticate": "Bearer"},
 		)
 	
-	user_obj = db.query(models.AuthUser).filter(models.AuthUser.id==current_user['user_id']).first()
+	user_obj = db.query(models.AuthUser).filter(models.AuthUser.id==authorized_user.id).first()
 	user_obj.email = email
 			
 
@@ -445,25 +415,19 @@ def auth_user_send_email(
 
 
 class AuthUserUpdatePhonePromotionAgreed(BaseModel):
-	token: str
 	phone_promotion_agreed: bool
 
 @router.put(f"/api/{app_name}/update/promotion_agreed/phone/")
 def auth_user_update_phone_promotion_agreed(
 	auth_user_update_phone_promotion_agreed_base_model: AuthUserUpdatePhonePromotionAgreed,
+	authorized_user: models.AuthUser = Depends(get_authenticated_user),
 	db: Session = Depends(get_db)
 ):
-	current_user = get_current_user_info(auth_user_update_phone_promotion_agreed_base_model.token, db)
-	if current_user["status_code"] != 200:
-		raise HTTPException(
-			status_code=current_user["status_code"],
-			detail=current_user["detail"],
-			headers={"WWW-Authenticate": "Bearer"},
-		)
+	
 	
 	phone_promotion_agreed = auth_user_update_phone_promotion_agreed_base_model.phone_promotion_agreed
 
-	user = db.query(models.AuthUser).filter(models.AuthUser.id == current_user['user_id']).first()
+	user = db.query(models.AuthUser).filter(models.AuthUser.id == authorized_user.id).first()
 
 	if not user:
 		raise HTTPException(status_code=404, detail="User not found")
@@ -477,25 +441,18 @@ def auth_user_update_phone_promotion_agreed(
 
 
 class AuthUserUpdateEmailPromotionAgreed(BaseModel):
-	token: str
 	email_promotion_agreed: bool
 
 @router.put(f"/api/{app_name}/update/promotion_agreed/email/")
 def auth_user_update_email_promotion_agreed(
 	auth_user_update_email_promotion_agreed_base_model: AuthUserUpdateEmailPromotionAgreed,
+	authorized_user: models.AuthUser = Depends(get_authenticated_user),
 	db: Session = Depends(get_db)
 ):
-	current_user = get_current_user_info(auth_user_update_email_promotion_agreed_base_model.token, db)
-	if current_user["status_code"] != 200:
-		raise HTTPException(
-			status_code=current_user["status_code"],
-			detail=current_user["detail"],
-			headers={"WWW-Authenticate": "Bearer"},
-		)
 	
 	email_promotion_agreed = auth_user_update_email_promotion_agreed_base_model.email_promotion_agreed
 
-	user = db.query(models.AuthUser).filter(models.AuthUser.id == current_user['user_id']).first()
+	user = db.query(models.AuthUser).filter(models.AuthUser.id == authorized_user.id).first()
 
 	if not user:
 		raise HTTPException(status_code=404, detail="User not found")

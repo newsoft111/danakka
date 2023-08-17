@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from payment import models as PaymentModel
 from auth import models as AuthModel
 from sqlalchemy.orm import Session, joinedload, selectinload
@@ -9,9 +9,9 @@ from decimal import Decimal
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
 from util.timezone import get_local_timezone
-from auth.security import get_current_user_info
+from auth.security import get_authenticated_user
 import requests
-
+import auth.models as AuthModels
 
 router = APIRouter()
 local_timezone = get_local_timezone()
@@ -28,20 +28,14 @@ class PaymentCreateBaseModel(BaseModel):
 @router.post(f"/api/{app_name}/create/")
 async def payment_create(
 		payment_create_base_model: PaymentCreateBaseModel,
+		authorized_user: AuthModels.AuthUser = Depends(get_authenticated_user),
 		db: Session = Depends(get_db)
 	):
 	
-	current_user = get_current_user_info(payment_create_base_model.token, db)
-	if current_user["status_code"] != 200:
-		raise HTTPException(
-			status_code=current_user["status_code"],
-			detail=current_user["detail"],
-			headers={"WWW-Authenticate": "Bearer"},
-		)
-
+	
 
 	# Retrieve user from the database based on user_id
-	user = db.query(AuthModel.AuthUser).filter(AuthModel.AuthUser.id == current_user['user_id']).first()
+	user = db.query(AuthModel.AuthUser).filter(AuthModel.AuthUser.id == authorized_user.id).first()
 
 	if not user:
 		raise HTTPException(status_code=404, detail="유저를 찾을수 없습니다.")
@@ -125,3 +119,17 @@ async def payment_complete(
 	else:
 		raise HTTPException(status_code=400, detail="Payment amount mismatch.")
 
+
+
+
+
+
+@router.get(f"/api/{app_name}/ticket/history/")
+async def get_user_ticket_history(
+		authorized_user: AuthModels.AuthUser = Depends(get_authenticated_user),
+		db: Session = Depends(get_db)
+):
+		
+	return {
+		authorized_user
+	}

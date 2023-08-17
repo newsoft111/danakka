@@ -28,7 +28,7 @@ import {
 } from "@chakra-ui/react";
 import {postData} from '../../../../util/Api';
 import MyPageNavBar from "../../../../component/Layout/Auth/MyPage/NavBar";
-import * as PortOne from '@portone/browser-sdk/v2';
+import requestPortOnePayment from '../../../../component/Payment/PortOne';
 
 const MyPageTicket = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,26 +44,35 @@ const MyPageTicket = () => {
 
 	const [count, setCount] = useState(1);
 	const [paymentMethod, setPaymentMethod] = useState("card");
-	const [orderName, setOrderName] = useState("");
-	const [totalAmount, setTotalAmount] = useState<number>(0);
+	const [orderName, setOrderName] = useState(`티켓 ${count}개`);
+	const [totalAmount, setTotalAmount] = useState<number>(count*100);
 	const token = localStorage.getItem('accessToken');
 	const toast = useToast();
 	const handleInputChange = (valueAsString: string, valueAsNumber: number) => {
 
 		if (valueAsNumber) {
 			setCount(valueAsNumber);
+			setOrderName(`티켓 ${valueAsNumber}개`);
+			setTotalAmount(valueAsNumber*100);
 		}
 	};
 
-	type PayMethod = 'CARD' | 'VIRTUAL_ACCOUNT' | 'TRANSFER' | 'MOBILE' | 'GIFT_CERTIFICATE' | 'EASY_PAY' | 'PAYPAL';
+	const { v4: uuidv4 } = require('uuid');  // uuid 라이브러리 사용
 
+	type PayMethod =
+	| 'CARD'
+	| 'VIRTUAL_ACCOUNT'
+	| 'TRANSFER'
+	| 'MOBILE'
+	| 'GIFT_CERTIFICATE'
+	| 'EASY_PAY'
+	| 'PAYPAL';
 
 	const requestPayment = async () => {
+		const paymentId = uuidv4();  // 새로운 UUID 생성
 		let channelKey = "channel-key-87675bb2-53ab-4654-a7a6-4aa4a3c60ae4";
-		let payMethod: PayMethod = 'CARD';
-		
-		setOrderName(`티켓 ${count}개`);
-		setTotalAmount(count*100);
+		let payMethod = 'CARD';
+
 
 		if (paymentMethod === "card") {
 			channelKey = "channel-key-87675bb2-53ab-4654-a7a6-4aa4a3c60ae4";
@@ -73,10 +82,6 @@ const MyPageTicket = () => {
 			payMethod = "EASY_PAY";
 		}
 		
-		const { v4: uuidv4 } = require('uuid');  // uuid 라이브러리 사용
-
-		const paymentId = uuidv4();  // 새로운 UUID 생성
-
 		try {
 			const data = await postData('/api/payment/create/', {
 				token: token,
@@ -87,15 +92,13 @@ const MyPageTicket = () => {
 			});
 			
 			if (data) {
-				PortOne.requestPayment({
-					storeId: 'store-0d0fe347-57a0-4059-bbac-4dadd79b9739', // 가맹점 storeId로 변경해주세요.
-					paymentId: paymentId,
-					orderName: orderName,
-					totalAmount: totalAmount,
-					currency: 'CURRENCY_KRW',
-					channelKey: channelKey,
-					payMethod: payMethod,
-				});
+				const result = await requestPortOnePayment(
+					paymentId,
+					orderName,
+					totalAmount,
+					channelKey,
+					payMethod as PayMethod
+				);
 			} else {
 				toast({
 					title: '알수없는 오류입니다. 관리자에게 문의해주세요.',
@@ -103,15 +106,14 @@ const MyPageTicket = () => {
 					status: 'success',
 					isClosable: true,
 				})
-
+	
 				return;
 			}
-
+	
 		} catch (error) {
-			console.error('Error updating phone promotion agreed:', error);
+			throw error;
 		}
 	}
-
 	
 
 	return (

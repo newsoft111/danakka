@@ -1,4 +1,4 @@
-from fastapi import Depends
+from fastapi import Depends, HTTPException, Security
 from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
 from typing import Optional
@@ -9,8 +9,11 @@ from . import models
 from .hashing import Hasher
 from util.timezone import get_local_timezone
 import jwt
+from fastapi.security.api_key import APIKeyHeader
 
 local_timezone = get_local_timezone()
+
+security = APIKeyHeader(name='Authorization')
 
 SECRET_KEY = "1874631815d5d1fa0dd80d3bf86ba5f6c47c3758409b15c17b88a7acc115b77b"
 ALGORITHM = "HS256"
@@ -53,42 +56,42 @@ def create_access_token(
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-
-
-def get_current_user_info(
-        token: str = Depends(oauth2_scheme),
+def get_authenticated_user(
+        authorization: str = Security(security),
         db: Session = Depends(get_db)
-    ):
+    ) -> models.AuthUser:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(authorization, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
         if user_id is None:
-            return {
-                "status_code":401,
-                "detail":"Invalid authentication credentials"
-			}
-        
-        user = db.query(models.AuthUser).filter(
-                models.AuthUser.id == user_id,
-        ).first()
-        return {
-			"status_code":200,
-			"detail": {
-                "email": user.email,
-                "nickname": user.nickname,
-                "phone_number":user.phone_number
-            },
-            "user_id": user_id
-		}
-    
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid authentication credentials"
+            )
+
+        user = db.query(models.AuthUser).filter(models.AuthUser.id == user_id).first()
+        if not user:
+            raise HTTPException(
+                status_code=401,
+                detail="User not found"
+            )
+
+        return user
+
     except jwt.ExpiredSignatureError:
-        return {
-			"status_code":401,
-			"detail":"Token has expired"
-		}
-    
-    except:
-        return {
-			"status_code":401,
-			"detail":"알수없는 오류입니다."
-		}
+        raise HTTPException(
+            status_code=401,
+            detail="Token has expired"
+        )
+
+    except jwt.DecodeError:
+        raise HTTPException(
+            status_code=401,
+            detail="Token decode error"
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=401,
+            detail="Authentication error"
+        )

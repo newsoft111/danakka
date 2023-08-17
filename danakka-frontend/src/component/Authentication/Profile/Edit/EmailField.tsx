@@ -49,15 +49,19 @@ const ProfileEditEmailField: React.FC<ProfileEditEmailFieldProps> = ({ user_emai
 		setIsOpen(true);
 	};
 
+
+	const headers = {
+		'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
+	};
+
 	const handleSave = async () => {
 		try {
-			const token = localStorage.getItem('accessToken');
-
+			
 			const data = await postData<ProfileEditSendEmailEditProps>('/api/auth/change/email/', {
-				token: token,
 				email: modalEmail,
 				verify_code: verificationCode,
-			});
+			},
+			headers);
 
 			if (data) {
 				updateUserInformation('email', modalEmail);
