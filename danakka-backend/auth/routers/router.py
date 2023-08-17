@@ -141,23 +141,12 @@ def auth_user_change_password(
 
 
 
-class AuthUserVerifiTokenBaseModel(BaseModel):
-	token: str
 
 @router.post(f"/api/{app_name}/verify_token/")
 def auth_user_verify_token(
-		auth_user_verify_token_base_model: AuthUserVerifiTokenBaseModel,
-		db: Session = Depends(get_db)
+		authorized_user: models.AuthUser = Depends(get_authenticated_user),
 	):
-	current_user = get_current_user_info(auth_user_verify_token_base_model.token, db)
-	if current_user["status_code"] == 200:
-		return {"user":current_user["detail"]}
-	else:
-		raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=current_user["detail"],
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+	return authorized_user
 	
 
 

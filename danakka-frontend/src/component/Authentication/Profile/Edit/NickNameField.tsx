@@ -35,13 +35,15 @@ const ProfileEditNickNameField: React.FC<ProfileEditNickNameFieldProps> = ({ use
 	}, [user_nickname]);
 
 	const handleSave = async () => {
+		const headers = {
+			'Authorization': localStorage.getItem('accessToken')
+		};
+
 		try {
-			const token = localStorage.getItem('accessToken');
 
 			const data = await postData<ProfileEditNickNamePostProps>('/api/auth/change/nickname/', {
-				token: token,
 				nickname: nickName,
-			});
+			}, headers);
 
 			if (data) {
 				updateUserInformation("nickname", nickName);

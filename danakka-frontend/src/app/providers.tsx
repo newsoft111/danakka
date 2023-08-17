@@ -29,19 +29,27 @@ export function Providers({
 
 	useEffect(() => {
 		const verifyUser = async () => {
-		try {
-			const user = await AuthManager.verifyToken();
-			if (user) {
-			setIsLoggedIn(true);
-			} else {
-			setIsLoggedIn(false);
+			try {
+				const user = await AuthManager.verifyToken();
+				if (user) {
+					setIsLoggedIn(true);
+				} else {
+					setIsLoggedIn(false);
+				}
+			} catch (error) {
+				setIsLoggedIn(false);
 			}
-		} catch (error) {
-			setIsLoggedIn(false);
-		}
 		};
-	
+
 		verifyUser();
+	
+		const intervalId = setInterval(() => {
+            verifyUser();
+        }, 5000);
+
+        return () => {
+            clearInterval(intervalId); // 컴포넌트 언마운트 시 인터벌 해제
+        };
 	}, []);
 
 

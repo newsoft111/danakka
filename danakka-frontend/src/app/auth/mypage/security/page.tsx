@@ -31,15 +31,17 @@ const MyPageSecurity = () => {
 	const toast = useToast();
 
 	const handleSave = async () => {
+		const headers = {
+			'Authorization': localStorage.getItem('accessToken')
+		};
+
 		try {
-			const token = localStorage.getItem('accessToken');
 
 			const data = await postData<ChangePasswordProps>('/api/auth/change/password/', {
-				token: token,
 				current_password: currentPassword,
 				new_password: newPasswd,
 				new_password_check: newPasswdCheck
-			});
+			}, headers);
 
 			if (data) {
 				toast({

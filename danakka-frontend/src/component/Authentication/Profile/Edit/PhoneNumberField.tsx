@@ -56,14 +56,16 @@ const ProfileEditPhoneNumberField: React.FC<ProfileEditPhoneNumberFieldProps> = 
 	};
 
 	const handleSave = async () => {
+		const headers = {
+			'Authorization': localStorage.getItem('accessToken')
+		};
+
 		try {
-			const token = localStorage.getItem('accessToken');
 
 			const data = await postData<ProfileEditPhoneNumberPostProps>('/api/auth/change/phone_number/', {
-				token: token,
 				phone_number: modalPhoneNumber,
 				verify_code: verificationCode,
-			});
+			}, headers);
 
 			if (data) {
 				updateUserInformation('phone_number', modalPhoneNumber);

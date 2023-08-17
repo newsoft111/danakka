@@ -51,7 +51,7 @@ const ProfileEditEmailField: React.FC<ProfileEditEmailFieldProps> = ({ user_emai
 
 
 	const headers = {
-		'Authorization': 'Bearer ' + localStorage.getItem('accessToken')
+		'Authorization': localStorage.getItem('accessToken')
 	};
 
 	const handleSave = async () => {

@@ -18,7 +18,7 @@ import AuthContext from '../../context/AuthContext';
 import { FiBell, FiMenu, FiMoon, FiSun, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
 import JoinModal from '../Authentication/JoinModal';
-import AuthManager from '../../util/Authentication'; // verifyToken 함수 임포트
+import AuthManager from '../../util/Authentication';
 import NextLink from 'next/link';
 
 

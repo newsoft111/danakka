@@ -73,6 +73,9 @@ const MyPageTicket = () => {
 		let channelKey = "channel-key-87675bb2-53ab-4654-a7a6-4aa4a3c60ae4";
 		let payMethod = 'CARD';
 
+		const headers = {
+			'Authorization': localStorage.getItem('accessToken')
+		};
 
 		if (paymentMethod === "card") {
 			channelKey = "channel-key-87675bb2-53ab-4654-a7a6-4aa4a3c60ae4";
@@ -84,12 +87,11 @@ const MyPageTicket = () => {
 		
 		try {
 			const data = await postData('/api/payment/create/', {
-				token: token,
 				merchant_uid: paymentId,
 				order_name: orderName,
 				total_amount: totalAmount,
 				pay_method: payMethod
-			});
+			}, headers);
 			
 			if (data) {
 				const result = await requestPortOnePayment(

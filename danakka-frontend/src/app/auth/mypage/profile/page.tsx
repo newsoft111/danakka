@@ -40,14 +40,14 @@ const MyPageMyprofile = () => {
 	const inputRef = useRef<HTMLInputElement | null>(null);
 	const [phonePromotionAgreed, setPhonePromotionAgreed] = useState<boolean>(false);
 	const [emailPromotionAgreed, setEmailPromotionAgreed] = useState<boolean>(false);
-	const token = localStorage.getItem('accessToken');
 
+	
 	useEffect(() => {
 		const savedUser = localStorage.getItem("user");
 
 		if (savedUser) {
-			const user = JSON.parse(savedUser).user;
-			setUserId(user.user_id);
+			const user = JSON.parse(savedUser);
+			setUserId(user.id);
 			setEmail(user.email);
 			setNickname(user.nickname);
 			setPhoneNumber(user.phone_number);
@@ -72,13 +72,16 @@ const MyPageMyprofile = () => {
 
 
 	const handlePhonePromotionAgreedChange = async () => {
+		const headers = {
+			'Authorization': localStorage.getItem('accessToken')
+		};
+		console.log(localStorage.getItem('accessToken'))
 		try {
 			await putData('/api/auth/update/promotion_agreed/phone/', {
-				token: token,
 				phone_promotion_agreed: !phonePromotionAgreed
-			});
+			},headers);
 
-		setPhonePromotionAgreed(!phonePromotionAgreed);
+			setPhonePromotionAgreed(!phonePromotionAgreed);
 
 		} catch (error) {
 			console.error('Error updating phone promotion agreed:', error);
@@ -87,14 +90,17 @@ const MyPageMyprofile = () => {
 	
 
 	const handleEmailPromotionAgreedChange = async () => {
+		const headers = {
+			'Authorization': localStorage.getItem('accessToken')
+		};
+
 		try {
 		// 스위치 변경 시 /api/auth/update/promotion_agreed/email/ 엔드포인트로 PUT 요청 보내기
-		await putData('/api/auth/update/promotion_agreed/email/', {
-			token: token,
-			email_promotion_agreed: !emailPromotionAgreed,
-		});
-		// 스위치 값 업데이트
-		setEmailPromotionAgreed(!emailPromotionAgreed);
+			await putData('/api/auth/update/promotion_agreed/email/', {
+				email_promotion_agreed: !emailPromotionAgreed,
+			}, headers);
+			// 스위치 값 업데이트
+			setEmailPromotionAgreed(!emailPromotionAgreed);
 		} catch (error) {
 			console.error('Error updating email promotion agreed:', error);
 		}
