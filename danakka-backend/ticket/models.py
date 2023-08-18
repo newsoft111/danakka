@@ -3,13 +3,12 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 from util.timezone import get_local_timezone
-from auth.models import Base as AuthBase
-
+from db.session import Base
 local_timezone = get_local_timezone()
-Base = declarative_base()
 
 
-class Ticket(AuthBase):
+
+class Ticket(Base):
 	__tablename__ = "ticket"
 
 	id = Column(Integer, primary_key=True, index=True)
@@ -29,7 +28,7 @@ class TicketUsageHistory(Base):
     id = Column(Integer, primary_key=True, index=True)
     ticket_id = Column(Integer, ForeignKey("ticket.id"))
     ticket_count_used = Column(Integer)
-    usage_reason = Column(String)
+    ticket_usage_reason = Column(String)
     used_at = Column(DateTime, default=datetime.now(local_timezone))
 
     ticket = relationship("Ticket", back_populates="ticket_usage_history")
