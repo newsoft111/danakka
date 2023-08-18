@@ -43,7 +43,6 @@ const JoinModal: React.FC<JoinModalProps> = ({
 		});
 		  
 
-      console.log(response.data); // 가입 완료 메시지 출력 또는 다른 처리
 
       // 가입 성공 후 추가적인 작업을 수행할 수 있습니다.
 

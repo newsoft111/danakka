@@ -3,6 +3,7 @@ from typing import Optional
 import booking.routers as BookingRouter
 import auth.routers as AuthRouter
 import payment.routers as PaymentRouter
+import ticket.routers as TicketRouter
 from fastapi import FastAPI, Depends, Path, HTTPException
 from fastapi.responses import FileResponse
 from core.config import media_settings
@@ -26,6 +27,7 @@ app.include_router(BookingRouter.router)
 app.include_router(BookingRouter.crawler.router)
 app.include_router(AuthRouter.router)
 app.include_router(PaymentRouter.router)
+app.include_router(TicketRouter.router)
 
 @app.get('/media/images/{file_path:path}')
 def get_image(file_path:str):

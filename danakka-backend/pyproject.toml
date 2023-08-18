@@ -23,6 +23,7 @@ pytz = "^2023.3"
 urllib3 = "1.26.15"
 pushbullet-py = "^0.12.0"
 bcrypt = "^4.0.1"
+cryptography = "^41.0.3"
 
 
 [build-system]

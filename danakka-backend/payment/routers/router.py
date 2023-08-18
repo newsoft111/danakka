@@ -32,7 +32,6 @@ async def payment_create(
 		db: Session = Depends(get_db)
 	):
 	
-	
 
 	# Retrieve user from the database based on user_id
 	user = db.query(AuthModel.AuthUser).filter(AuthModel.AuthUser.id == authorized_user.id).first()
@@ -120,16 +119,3 @@ async def payment_complete(
 		raise HTTPException(status_code=400, detail="Payment amount mismatch.")
 
 
-
-
-
-
-@router.get(f"/api/{app_name}/ticket/history/")
-async def get_user_ticket_history(
-		authorized_user: AuthModels.AuthUser = Depends(get_authenticated_user),
-		db: Session = Depends(get_db)
-):
-		
-	return {
-		authorized_user
-	}

@@ -99,7 +99,6 @@ const BookingFishingDetail = () => {
 			});
 
 			if (data) {
-				console.log(data)
 				const displayName = `[${data.fishing_objs.harbor.name}] ${data.fishing_objs.display_business_name}`
 				setDisplayName(displayName);
 				setFishingData(data);

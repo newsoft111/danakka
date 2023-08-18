@@ -91,6 +91,7 @@ def get_authenticated_user(
         )
 
     except Exception as e:
+        print(e)
         raise HTTPException(
             status_code=401,
             detail="Authentication error"

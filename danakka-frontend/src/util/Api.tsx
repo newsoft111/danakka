@@ -31,7 +31,6 @@ export async function getData<T>(url: string, params: any, headers?: any): Promi
     }
     
   } catch (error) {
-    console.error(error);
     return undefined;
   }
 }

@@ -470,3 +470,6 @@ def get_unique_nickname(db):
         nickname = generate_random_nickname()
         if not is_nickname_duplicate(nickname, db):
             return nickname
+	
+
+
