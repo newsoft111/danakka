@@ -37,6 +37,7 @@ import {postData, getData} from '../../../../util/Api';
 import MyPageNavBar from "../../../../component/Layout/Auth/MyPage/NavBar";
 import requestPortOnePayment from '../../../../component/Payment/PortOne';
 
+
 const MyPageTicket = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -48,7 +49,10 @@ const MyPageTicket = () => {
 		setIsModalOpen(false);
 	};
 
-
+	const customData = {
+		"referer":"ticket",
+	}
+	
 	const [count, setCount] = useState(1);
 	const [paymentMethod, setPaymentMethod] = useState("card");
 	const [orderName, setOrderName] = useState(`티켓 ${count}개`);
@@ -56,7 +60,7 @@ const MyPageTicket = () => {
 	const token = localStorage.getItem('accessToken');
 	const toast = useToast();
 	const [ticketHistory, setTicketHistory] = useState<TicketHistory[]>([]);
-
+	const [paymentResult, setPaymentResult] = useState<PaymentResponse | undefined>();
 	const handleInputChange = (valueAsString: string, valueAsNumber: number) => {
 	
 
@@ -119,8 +123,11 @@ const MyPageTicket = () => {
 					orderName,
 					totalAmount,
 					channelKey,
-					payMethod as PayMethod
+					payMethod as PayMethod,
+					customData
 				);
+				setPaymentResult(result as PaymentResponse | undefined);
+				setIsModalOpen(false);
 			} else {
 				toast({
 					title: '알수없는 오류입니다. 관리자에게 문의해주세요.',
@@ -161,7 +168,7 @@ const MyPageTicket = () => {
         };
       
         getTicketHistory();
-    }, []);
+    }, [paymentResult]);
 
 
 	
@@ -191,7 +198,7 @@ const MyPageTicket = () => {
 						
 
 						<Heading size="md" mb={7}>티켓 내역</Heading>
-						<TableContainer component={Box} textAlign="center">
+						<TableContainer>
 							<Table variant='simple'>
 								<Thead>
 									<Tr>

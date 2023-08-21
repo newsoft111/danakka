@@ -9,16 +9,18 @@ local_timezone = get_local_timezone()
 
 
 class Ticket(Base):
-	__tablename__ = "ticket"
+    __tablename__ = "ticket"
 
-	id = Column(Integer, primary_key=True, index=True)
-	auth_user_id = Column(Integer, ForeignKey("auth_user.id"))
-	ticket_count = Column(Integer, default=0)
+    id = Column(Integer, primary_key=True, index=True)
+    auth_user_id = Column(Integer, ForeignKey("auth_user.id"))
+    payment_id = Column(Integer, ForeignKey("payment.id"))
+    ticket_count = Column(Integer, default=0)
 
-	auth_user = relationship("AuthUser", back_populates="ticket")
+    auth_user = relationship("AuthUser", back_populates="ticket")
+    payment = relationship("Payment", back_populates="ticket")
 
-	ticket_usage_history = relationship("TicketUsageHistory", back_populates="ticket")
-	ticket_purchase_history = relationship("TicketPurchaseHistory", back_populates="ticket")
+    ticket_usage_history = relationship("TicketUsageHistory", back_populates="ticket")
+    ticket_purchase_history = relationship("TicketPurchaseHistory", back_populates="ticket")
 
 
 

@@ -22,3 +22,5 @@ class Payment(Base):
 	paid_at = Column(DateTime, nullable=True)
 
 	auth_user = relationship("AuthUser", back_populates="auth_user_payment")
+
+	ticket = relationship("Ticket", back_populates="payment")

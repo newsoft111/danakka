@@ -15,7 +15,8 @@ const requestPortOnePayment = async (
 	orderName: string,
 	totalAmount: number,
 	channelKey: string,
-	payMethod: PayMethod // Use the PayMethod type here
+	payMethod: PayMethod, // Use the PayMethod type here
+	customData: {}
   ) => {
 	
 	try {
@@ -27,6 +28,7 @@ const requestPortOnePayment = async (
 			currency: 'CURRENCY_KRW',
 			channelKey: channelKey,
 			payMethod: payMethod,
+			customData: customData
 		});
 		
 		return result;

@@ -12,6 +12,11 @@ from util.timezone import get_local_timezone
 from auth.security import get_authenticated_user
 import requests
 import auth.models as AuthModels
+from ticket.action import TicketAction
+import json
+
+
+
 
 router = APIRouter()
 local_timezone = get_local_timezone()
@@ -19,7 +24,6 @@ app_name = 'payment'
 PORTONE_API_KEY = 'ZgmeM5criaKg0tOjVTjjeXwlvbM3DqZu0WG3OPUn8hKSP3oTQYqTq9QdSywtmrXm2xuLZ38NJSnDnuWp'
 
 class PaymentCreateBaseModel(BaseModel):
-	token: str
 	merchant_uid: str
 	order_name: str
 	total_amount: Decimal
@@ -47,7 +51,7 @@ async def payment_create(
 		total_amount=payment_create_base_model.total_amount,
 		pay_method=payment_create_base_model.pay_method,
 		is_paid=False,  # Payment is not paid yet
-		created_at=datetime.now(),
+		created_at=datetime.now(local_timezone),
 		paid_at=None  # Payment has not been paid yet
 	)
 
@@ -75,14 +79,12 @@ async def payment_complete(
 	):
 	
 
-
 	paymentId = payment_complete_base_model.payment_id
 	status = payment_complete_base_model.status
 
-	if status != "PAID":
+	if status != "Paid":
 		raise HTTPException(status_code=400, detail="결제가 완료되지 않았음.")
 	
-	# Retrieve payment info from PortOne API
 	signin_response = requests.post(
 		"https://api.portone.io/v2/signin/api-key",
 		json={"api_key": PORTONE_API_KEY},
@@ -100,6 +102,7 @@ async def payment_complete(
 	transactions = payment["transactions"]
 	transaction = next((tx for tx in transactions if tx["is_primary"]), None)
 	if transaction is None:
+		print("No primary transaction found")
 		raise HTTPException(status_code=400, detail="No primary transaction found")
 
 	# Compare payment amount with transaction amount
@@ -110,12 +113,25 @@ async def payment_complete(
 
 	if payment_obj.total_amount == transaction["amount"]["total"]:
 		payment_obj.is_paid = True
+		payment_obj.paid_at = datetime.now(local_timezone)
+
+		
+		custom_data=json.loads(transaction["custom_data"])
+
+		if custom_data['referer'] == "ticket":
+			ticket_action = TicketAction(db)
+			ticket_action.purchase_ticket(
+				authorized_user=payment_obj.auth_user,
+				ticket_count=payment_obj.total_amount/100
+			)
+
 		db.commit()
 		return {
 			"status_code": 200,
 			"detail": "Payment post-processing completed.",
 		}
 	else:
+		print('Payment amount mismatch.')
 		raise HTTPException(status_code=400, detail="Payment amount mismatch.")
 
 
