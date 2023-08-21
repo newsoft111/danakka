@@ -38,8 +38,8 @@ async def get_user_ticket_history(
 		"ticket_history": [
 			{
 				"ticket_count": history.ticket_count_used if hasattr(history, 'ticket_count_used') else history.ticket_count_purchased,
-				"action": "used" if hasattr(history, 'used_at') else "purchased",
-				"timestamp": history.used_at if hasattr(history, 'used_at') else history.purchased_at
+				"action": "사용" if hasattr(history, 'used_at') else "충전",
+				"timestamp": (history.used_at).strftime('%Y-%m-%d %H:%M') if hasattr(history, 'used_at') else (history.purchased_at).strftime('%Y-%m-%d %H:%M')
 			} for history in all_history
 		]
 	}

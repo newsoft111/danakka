@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
 	Divider, 
 	Heading, 
@@ -24,9 +24,16 @@ import {
 	RadioGroup,
 	Stack,
 	Radio,
-	useToast
+	useToast,
+	TableContainer,
+	Table,
+	Thead,
+	Tr,
+	Tbody,
+	Th,
+	Td
 } from "@chakra-ui/react";
-import {postData} from '../../../../util/Api';
+import {postData, getData} from '../../../../util/Api';
 import MyPageNavBar from "../../../../component/Layout/Auth/MyPage/NavBar";
 import requestPortOnePayment from '../../../../component/Payment/PortOne';
 
@@ -48,7 +55,10 @@ const MyPageTicket = () => {
 	const [totalAmount, setTotalAmount] = useState<number>(count*100);
 	const token = localStorage.getItem('accessToken');
 	const toast = useToast();
+	const [ticketHistory, setTicketHistory] = useState<TicketHistory[]>([]);
+
 	const handleInputChange = (valueAsString: string, valueAsNumber: number) => {
+	
 
 		if (valueAsNumber) {
 			setCount(valueAsNumber);
@@ -67,6 +77,16 @@ const MyPageTicket = () => {
 	| 'GIFT_CERTIFICATE'
 	| 'EASY_PAY'
 	| 'PAYPAL';
+
+	type TicketHistory = {
+		ticket_count: number;
+		action: string;
+		timestamp: string;
+	};
+	  
+	type TicketHistoryResponse = {
+		ticket_history: TicketHistory[];
+	};
 
 	const requestPayment = async () => {
 		const paymentId = uuidv4();  // 새로운 UUID 생성
@@ -116,6 +136,34 @@ const MyPageTicket = () => {
 			throw error;
 		}
 	}
+
+	useEffect(() => {
+        const getTicketHistory = async () => {
+			const headers = {
+				'Authorization': localStorage.getItem('accessToken')
+			};
+	
+			try {
+				const response = await getData<TicketHistoryResponse>('/api/ticket/history/', {}, headers);
+	
+				if (response) {
+					const data = await response;
+          			setTicketHistory(data.ticket_history);
+				} else {
+					console.log('토큰이 유효하지 않습니다.');
+					return null;
+				}
+			} catch (error) {
+				console.log('토큰이 유효하지 않습니다.');
+				return null;
+			}
+
+        };
+      
+        getTicketHistory();
+    }, []);
+
+
 	
 
 	return (
@@ -143,6 +191,28 @@ const MyPageTicket = () => {
 						
 
 						<Heading size="md" mb={7}>티켓 내역</Heading>
+						<TableContainer component={Box} textAlign="center">
+							<Table variant='simple'>
+								<Thead>
+									<Tr>
+										<Th>개수</Th>
+										<Th>내역</Th>
+										<Th>시간</Th>
+									</Tr>
+								</Thead>
+								<Tbody>
+									{ticketHistory.map((history, index) => (
+										<Tr key={index}>
+											<Td>{history.ticket_count}개</Td>
+											<Td>{history.action}</Td>
+											<Td>{history.timestamp}</Td>
+										</Tr>
+									))}
+								
+									
+								</Tbody>
+							</Table>
+						</TableContainer>
 							
 					</CardBody>
 				</Card>
