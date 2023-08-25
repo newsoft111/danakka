@@ -121,6 +121,7 @@ async def payment_complete(
 		if custom_data['referer'] == "ticket":
 			ticket_action = TicketAction(db)
 			ticket_action.purchase_ticket(
+				payment_obj=payment_obj,
 				authorized_user=payment_obj.auth_user,
 				ticket_count=payment_obj.total_amount/100
 			)

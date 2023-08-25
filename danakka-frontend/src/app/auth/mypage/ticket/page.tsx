@@ -36,7 +36,7 @@ import {
 import {postData, getData} from '../../../../util/Api';
 import MyPageNavBar from "../../../../component/Layout/Auth/MyPage/NavBar";
 import requestPortOnePayment from '../../../../component/Payment/PortOne';
-
+import TicketManager from '../../../../util/Ticket';
 
 const MyPageTicket = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,10 +57,10 @@ const MyPageTicket = () => {
 	const [paymentMethod, setPaymentMethod] = useState("card");
 	const [orderName, setOrderName] = useState(`티켓 ${count}개`);
 	const [totalAmount, setTotalAmount] = useState<number>(count*100);
-	const token = localStorage.getItem('accessToken');
 	const toast = useToast();
 	const [ticketHistory, setTicketHistory] = useState<TicketHistory[]>([]);
 	const [paymentResult, setPaymentResult] = useState<PaymentResponse | undefined>();
+	const [ userTicketCount, setUserTicketCount ] = useState<number>(0);
 	const handleInputChange = (valueAsString: string, valueAsNumber: number) => {
 	
 
@@ -170,7 +170,20 @@ const MyPageTicket = () => {
         getTicketHistory();
     }, [paymentResult]);
 
+	useEffect(() => {
+		const getUserTicketCount = async () => {
 
+			let data = await TicketManager.getUserTicketCount();
+
+			if (data) {
+				setUserTicketCount(data);
+			}
+			
+			
+		}
+		getUserTicketCount();
+
+	}, []);
 	
 
 	return (
@@ -184,7 +197,7 @@ const MyPageTicket = () => {
 								보유중인 티켓
 							</Text>
 							<Flex flexShrink="0" alignItems="center">
-								<Box>100개</Box>
+								<Box>{userTicketCount}개</Box>
 								<Box ml={5}>
 									<Button colorScheme="teal" size="sm" onClick={handleOpenModal}>
 										충전

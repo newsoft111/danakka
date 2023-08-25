@@ -19,6 +19,7 @@ import { FiBell, FiMenu, FiMoon, FiSun, FiUser } from 'react-icons/fi';
 import LoginModal from '../Authentication/LoginModal';
 import JoinModal from '../Authentication/JoinModal';
 import AuthManager from '../../util/Authentication';
+import TicketManager from '../../util/Ticket';
 import NextLink from 'next/link';
 
 
@@ -28,6 +29,7 @@ const Header = () => {
 	const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
 	const { isLoggedIn, setIsLoggedIn } = useContext(AuthContext);
 	const { toggleColorMode, colorMode } = useColorMode();
+	const [ userTicketCount, setUserTicketCount ] = useState<number>(0);
 
 
 	const openLoginModal = () => {
@@ -53,7 +55,20 @@ const Header = () => {
 		closeLoginModal(); // 로그인 모달 닫기
 	};
 
- 	
+	useEffect(() => {
+		const getUserTicketCount = async () => {
+
+			let data = await TicketManager.getUserTicketCount();
+
+			if (data) {
+				setUserTicketCount(data);
+			}
+			
+			
+		}
+		getUserTicketCount();
+
+	}, []);
 
 
 
@@ -108,7 +123,7 @@ const Header = () => {
 						<MenuItem as={NextLink} href='/auth/mypage/profile'>내프로필</MenuItem>
 						<MenuItem as={NextLink} href='/auth/mypage/security'>보안설정</MenuItem>
 						<MenuDivider />
-						<MenuItem as={NextLink} href='/auth/mypage/ticket'>티켓 : 100장</MenuItem>
+						<MenuItem as={NextLink} href='/auth/mypage/ticket'>티켓 : {userTicketCount}장</MenuItem>
 						<MenuDivider />
 						<MenuItem onClick={AuthManager.logout}>로그아웃</MenuItem>
 							

@@ -16,6 +16,26 @@ local_timezone = get_local_timezone()
 app_name = 'ticket'
 
 
+
+
+@router.get(f"/api/{app_name}/user/count/")
+async def get_user_ticket_count(
+        authorized_user: AuthModels.AuthUser = Depends(get_authenticated_user),
+        db: Session = Depends(get_db)
+):
+
+	ticket_obj = db.query(TicketModels.Ticket).filter(TicketModels.Ticket.auth_user_id == authorized_user.id).first()
+
+	ticket_count = 0  # 기본값 0으로 초기화
+
+	if ticket_obj is not None:  # 데이터가 존재하면 해당 티켓 카운트 사용
+		ticket_count = ticket_obj.ticket_count
+
+	return {
+		"ticket_count": ticket_count
+	}
+
+
 @router.get(f"/api/{app_name}/history/")
 async def get_user_ticket_history(
         authorized_user: AuthModels.AuthUser = Depends(get_authenticated_user),
