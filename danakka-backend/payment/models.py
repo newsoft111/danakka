@@ -23,4 +23,4 @@ class Payment(Base):
 
 	auth_user = relationship("AuthUser", back_populates="payment")
 
-	ticket_purchase_history = relationship("Ticket", back_populates="payment")
+	ticket_purchase_history = relationship("TicketPurchaseHistory", back_populates="payment")
