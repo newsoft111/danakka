@@ -1,5 +1,0 @@
-[[redirects]]
-from = "/proxy/*"
-  to = "http://newsoft.kr:8500/:splat"  
-  status = 200
-  force = true

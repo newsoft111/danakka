@@ -18,7 +18,7 @@ app_name = 'ticket'
 
 
 
-@router.get(f"/api/{app_name}/user/count/")
+@router.get(f"/api/{app_name}/user/ticket-count/")
 async def get_user_ticket_count(
         authorized_user: AuthModels.AuthUser = Depends(get_authenticated_user),
         db: Session = Depends(get_db)
