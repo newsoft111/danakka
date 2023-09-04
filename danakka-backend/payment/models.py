@@ -21,6 +21,6 @@ class Payment(Base):
 	created_at = Column(DateTime, default=datetime.now(local_timezone))
 	paid_at = Column(DateTime, nullable=True)
 
-	auth_user = relationship("AuthUser", back_populates="auth_user_payment")
+	auth_user = relationship("AuthUser", back_populates="payment")
 
-	ticket_purchase_history = relationship("Ticket", back_populates="TicketPurchaseHistory")
+	ticket_purchase_history = relationship("Ticket", back_populates="payment")
