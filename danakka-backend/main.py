@@ -4,16 +4,19 @@ import booking.routers as BookingRouter
 import auth.routers as AuthRouter
 import payment.routers as PaymentRouter
 import ticket.routers as TicketRouter
-from fastapi import FastAPI, Depends, Path, HTTPException
+from fastapi import FastAPI, Depends, Path, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
 from core.config import media_settings
-import os
+import os, time, asyncio
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
+from booking.crawler.sunsang24 import Sunsang24Crawler
 
 app = FastAPI()
 
 origins = ["*"]
+
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +27,6 @@ app.add_middleware(
 )
 
 app.include_router(BookingRouter.router)
-app.include_router(BookingRouter.crawler.router)
 app.include_router(AuthRouter.router)
 app.include_router(PaymentRouter.router)
 app.include_router(TicketRouter.router)
@@ -37,4 +39,10 @@ def get_image(file_path:str):
 		file = ''.join([media_settings.IMG_DIR,'ship_new.png'])
 
 	return FileResponse(file)
-	
+
+
+sunsang24_crawler = Sunsang24Crawler()
+
+@app.on_event('startup')
+async def app_startup():
+    asyncio.create_task(sunsang24_crawler.run_main())

@@ -109,8 +109,12 @@ class FishingBooking(Base):
 
 	id = Column(Integer, primary_key=True, index=True)
 	fishing_id = Column(Integer, ForeignKey("fishing.id"))
-	user_id = Column(Integer)
+	auth_user_id = Column(Integer, ForeignKey("auth_user.id"), nullable=True)
 	date=Column(DateTime)
-	person=Column(Integer)
+	person_count=Column(Integer)
+	person_name=Column(String(255))
+	is_deposit = Column(Boolean, default=False)
+	is_cancel = Column(Boolean, default=False)
 
+	auth_user = relationship("AuthUser", back_populates="fishing_booking")
 	fishing = relationship("Fishing", back_populates="fishing_booking")

@@ -8,7 +8,7 @@ danakka_settings = DanakkaSettins()
 class DbSettings:
 	DB_USERNAME : str = "danakka"
 	DB_PASSWORD = "ehdwns2510!"
-	DB_HOST : str = "192.168.219.102:3306"
+	DB_HOST : str = "newsoft.kr:3306"
 	DB_DATABASE : str = "danakka"
 	
 	DATABASE_URL = f"mysql+pymysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}/{DB_DATABASE}"

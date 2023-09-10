@@ -95,7 +95,7 @@ def filter_by_species_item(db: Session, query, species_item: str):
 
 def filter_by_available_seats(db: Session, query, search_date: date, harbor: Optional[str], species_month_date: str, available_seats_number: int, can_booking:int):
 	"""FishingBooking 모델에 대한 서브쿼리 생성 및 예약 가능한 좌석 수 필터링"""
-	subquery = db.query(func.sum(models.FishingBooking.person))
+	subquery = db.query(func.sum(models.FishingBooking.person_count))
 	subquery = subquery.join(models.Fishing)
 	subquery = subquery.filter(models.FishingBooking.date == search_date)
 	if harbor:
@@ -150,7 +150,7 @@ async def read_fishing(
 	# Get booking data
 	booking_query = db.query(
 		models.FishingBooking.date,
-		func.sum(models.FishingBooking.person)
+		func.sum(models.FishingBooking.person_count)
 	).filter(
 		models.FishingBooking.fishing_id == fishing_pk,
 		models.FishingBooking.date >= start_date,
@@ -159,18 +159,18 @@ async def read_fishing(
 
 	bookings = {
 		str(booking_date): {
-			"total_person": total_person,
+			"total_person_count": total_person_count,
 			"maximum_seat": maximum_seat,
-			"available_seats": maximum_seat - total_person,
+			"available_seats": maximum_seat - total_person_count,
 			"date": str(booking_date)
-		} for booking_date, total_person in booking_query
+		} for booking_date, total_person_count in booking_query
 	}
 
 
 	# Generate fishing booking objects
 	fishing_booking_objs = [
 		bookings.get(single_date.strftime("%Y-%m-%d"), {
-			"total_person": 0,
+			"total_person_count": 0,
 			"maximum_seat": maximum_seat,
 			"available_seats": maximum_seat,
 			"date": single_date.strftime("%Y-%m-%d")

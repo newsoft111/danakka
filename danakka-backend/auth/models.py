@@ -20,9 +20,8 @@ class AuthUser(Base):
 
 	auth_promotion_agreement = relationship("AuthPromotionAgreement", back_populates="auth_user", uselist=False)
 	ticket = relationship("Ticket", back_populates="auth_user")
-
 	payment = relationship("Payment", back_populates="auth_user")
-
+	fishing_booking = relationship("FishingBooking", back_populates="auth_user")
 
 
 
