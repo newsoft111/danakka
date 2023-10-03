@@ -138,10 +138,10 @@ const BookingFishingDetail = () => {
 						<Wrap spacing='10px' align='center'>
 									
 						{months.map((m) => (
-							<WrapItem>
-							<Button key={m.month} colorScheme="teal" value={`${m.year}${m.month}`} onClick={getReservationDateYM}>
-								{m.label}
-							</Button>
+							<WrapItem key={m.month}>
+								<Button colorScheme="teal" value={`${m.year}${m.month}`} onClick={getReservationDateYM}>
+									{m.label}
+								</Button>
 
 							</WrapItem>
 						))}
