@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://newsoft.kr:8000',
+  baseURL: 'http://danakka.kr',
   headers: {
     'Content-Type': 'application/json'
   }

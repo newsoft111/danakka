@@ -42,7 +42,7 @@ for folder_name, router_files in router_folders.items():
  
 
 
-@app.get('/media/images/{file_path:path}')
+@app.get('/api/media/images/{file_path:path}')
 def get_image(file_path:str):
 	if os.path.isfile(''.join([media_settings.IMG_DIR,file_path])):
 		file = ''.join([media_settings.IMG_DIR,file_path])

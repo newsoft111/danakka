@@ -341,7 +341,7 @@ const BookingFishingList = () => {
 							>
 								<Image 
 								w="100%"
-								src={`http://newsoft.kr:8500${booking.fishing_month.fishing.thumbnail}`}
+								src={`http://cdn.danakka.kr${booking.fishing_month.fishing.thumbnail}`}
 								alt=''
 								/>
 						
