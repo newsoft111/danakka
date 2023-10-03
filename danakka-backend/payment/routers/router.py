@@ -8,7 +8,7 @@ from pydantic import BaseModel, conint
 from decimal import Decimal
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
-from util.timezone import get_local_timezone
+from core.timezone import get_local_timezone
 from auth.security import get_authenticated_user
 import requests
 import auth.models as AuthModels

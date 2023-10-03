@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from db.connection import get_db
 from . import models
 from .hashing import Hasher
-from util.timezone import get_local_timezone
+from core.timezone import get_local_timezone
 import jwt
 from fastapi.security.api_key import APIKeyHeader
 

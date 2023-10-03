@@ -8,7 +8,7 @@ const Page = () => {
 
   useEffect(() => {
     if (pathname === "/") {
-      router.push("/booking/fishing/");
+      router.push("/fishing/");
     }
   }, [pathname, router]);
 

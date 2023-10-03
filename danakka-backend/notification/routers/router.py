@@ -7,7 +7,7 @@ from pydantic import BaseModel, conint
 from typing import List, Optional, Union
 from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta
-from util.timezone import get_local_timezone
+from core.timezone import get_local_timezone
 
 router = APIRouter()
 local_timezone = get_local_timezone()
