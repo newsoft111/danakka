@@ -157,11 +157,13 @@ async def create_booked_data(
 
 class CreateFishingDataBaseModel(BaseModel):
 	display_business_name: str
-	uid: str
+	uid: int
 	business_address: str
 	harbor: str
 	referrer: str
 	introduce: Optional[str] = None
+	site_url: Optional[str] = None
+	maximum_seat: Optional[int] = None
 
 @router.post(f"/api/{APPNAME}/crawler/create/fishing/data/")
 async def create_fishing_data(

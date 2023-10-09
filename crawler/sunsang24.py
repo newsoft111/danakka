@@ -150,7 +150,9 @@ class Sunsang24Crawler:
 					'business_address': business_address,
 					'harbor': harbor,
 					'introduce': introduce,
-					'referrer': '선상24'
+					'referrer': '선상24',
+					'site_url': None,
+					"maximum_seat": None
 				}
 
 				
