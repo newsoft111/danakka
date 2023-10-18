@@ -22,16 +22,6 @@ class TheFishingCrawler:
 		self.session = requests.Session()
 
 
-		service = Service()
-
-		options = webdriver.ChromeOptions() 
-		options.add_argument('--ignore-ssl-errors=yes')
-		options.add_argument('--ignore-certificate-errors')
-
-		self.driver = webdriver.Chrome(service=service, options=options)
-		
-		self.driver.set_window_size(random.uniform(993,1300), random.uniform(700,1000))
-
 
 		self.the_fishing_scraping_fishing_data()
 
@@ -41,6 +31,15 @@ class TheFishingCrawler:
 			
 
 	def the_fishing_scraping_fishing_data(self):
+		service = Service()
+
+		options = webdriver.ChromeOptions() 
+		options.add_argument('--ignore-ssl-errors=yes')
+		options.add_argument('--ignore-certificate-errors')
+
+		driver = webdriver.Chrome(service=service, options=options)
+		
+		driver.set_window_size(random.uniform(993,1300), random.uniform(700,1000))
 	
 		current_page = 1
 		last_page = 2
@@ -48,21 +47,21 @@ class TheFishingCrawler:
 		SCROLL_PAUSE_TIME = 1
 
 		while current_page <= last_page:
-			self.driver.get(f"{self.the_fishing_url}/reservation/list.php?page={current_page}")
+			driver.get(f"{self.the_fishing_url}/reservation/list.php?page={current_page}")
 
-			last_height = self.driver.execute_script("return document.body.scrollHeight")
+			last_height = driver.execute_script("return document.body.scrollHeight")
 
 			while True:
 				# Scroll down to bottom
-				self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+				driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 				# Wait to load page
 				time.sleep(SCROLL_PAUSE_TIME)
 				# Calculate new scroll height and compare with last scroll height
-				new_height = self.driver.execute_script("return document.body.scrollHeight")
+				new_height = driver.execute_script("return document.body.scrollHeight")
 				if new_height == last_height:
 					try:
 						#맨뒤로가기 버튼
-						link = self.driver.find_element(By.XPATH, f'//*[@id="content"]/article[3]/div[2]/a[4]').get_attribute("href")
+						link = driver.find_element(By.XPATH, f'//*[@id="content"]/article[3]/div[2]/a[4]').get_attribute("href")
 						parsed_url = urlparse(link)
 						query_params = parse_qs(parsed_url.query)
 						last_page = int(query_params.get('page', [''])[0])
@@ -74,7 +73,7 @@ class TheFishingCrawler:
 			
 
 			#예약리스트 li 리스트
-			eles = self.driver.find_elements(By.XPATH, '//*[@id="reservaion-ul"]/li')
+			eles = driver.find_elements(By.XPATH, '//*[@id="reservaion-ul"]/li')
 
 			elements_html = []
 
@@ -115,14 +114,14 @@ class TheFishingCrawler:
 
 
 				#사이트 url 가져오기
-				self.driver.get(f"{self.the_fishing_url}/reservation/list.php?uid={uid}&type=2")
+				driver.get(f"{self.the_fishing_url}/reservation/list.php?uid={uid}&type=2")
 
-				site_url = self.driver.find_element(By.XPATH, '//*[@id="content"]/article[1]/div/div[1]/div[2]/div[4]/div[1]/a').get_attribute('href')
+				site_url = driver.find_element(By.XPATH, '//*[@id="content"]/article[1]/div/div[1]/div[2]/div[4]/div[1]/a').get_attribute('href')
 				parsed_url = urlparse(site_url)
 				site_url = parsed_url.scheme + "://" + parsed_url.netloc + "/"
 
 				#상세소개 가져오기
-				introduce = self.driver.find_element(By.XPATH, '//*[@id="content"]/article[1]/div/div[3]/dl[1]/dd').text
+				introduce = driver.find_element(By.XPATH, '//*[@id="content"]/article[1]/div/div[3]/dl[1]/dd').text
 				if introduce.find('기본정보 준비중') != -1:
 					introduce = None
 
@@ -148,6 +147,8 @@ class TheFishingCrawler:
 
 
 			current_page += 1
+
+		driver.quit()
 
 
 if __name__ == "__main__":

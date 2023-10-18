@@ -16,9 +16,7 @@ class Sunsang24Crawler:
 		self.sunsang24_scraping_booked_data()
 
 	def sunsang24_scraping_booked_data(self):
-		session = requests.Session()
-
-		fishing_objs = session.get(f"{self.danakka_url}/api/fishing/crawler/read/fishing/data/").json()
+		fishing_objs = self.session.get(f"{self.danakka_url}/api/fishing/crawler/read/fishing/data/").json()
 
 
 		for fishing_obj in fishing_objs:
@@ -58,7 +56,7 @@ class Sunsang24Crawler:
 					}
 					print(data)
 
-					session.post(f"{self.danakka_url}/api/fishing/crawler/create/species/data/", json=data).raise_for_status()
+					self.session.post(f"{self.danakka_url}/api/fishing/crawler/create/species/data/", json=data).raise_for_status()
 
 
 				# Get booked seat info
@@ -88,7 +86,7 @@ class Sunsang24Crawler:
 						'booked_seat': booked_seat,
 					}
 
-					session.post(f'{self.danakka_url}/api/fishing/crawler/create/booked/data/', json=data).raise_for_status()
+					self.session.post(f'{self.danakka_url}/api/fishing/crawler/create/booked/data/', json=data).raise_for_status()
 			
 
 			
