@@ -41,12 +41,28 @@ async def read_all_fishing(
 	offset = (page - 1) * per_page
 
 	search_date = date
-	species_month_date = str(date.year) + str(date.month).zfill(2)
+	species_year = str(date.year)
+	species_month = str(date.month).zfill(2)
 
-	query = create_fishing_month_query(db, species_month_date, fishing_type, harbor)
+	query = create_fishing_month_query(
+		db, 
+		species_year=species_year, 
+		species_month=species_month, 
+		fishing_type=fishing_type, 
+		harbor=harbor
+	)
 	if species_item:
 		query = filter_by_species_item(db, query, species_item)
-	query, available_seats = filter_by_available_seats(db, query, search_date, harbor, species_month_date, available_seats_number, can_booking)
+	query, available_seats = filter_by_available_seats(
+		db, 
+		query, 
+		search_date, 
+		harbor, 
+		species_year=species_year, 
+		species_month=species_month,
+		available_seats_number=available_seats_number, 
+		can_booking=can_booking
+	)
 	total_count = query.count()
 	fishing_months_with_available_seats = (
 		query
@@ -76,7 +92,7 @@ async def read_all_fishing(
     "last_page": total_count // per_page + 1,
 }
 
-def create_fishing_month_query(db: Session, species_month_date: str, fishing_type: Optional[str], harbor: Optional[str]):
+def create_fishing_month_query(db: Session, species_month: str, species_year: str, fishing_type: Optional[str], harbor: Optional[str]):
     """FishingMonth 모델에 대한 쿼리 생성"""
     query = db.query(models.FishingMonth)
     query = query.filter_by(month=species_month_date).options(joinedload(models.FishingMonth.fishing).joinedload(models.Fishing.harbor))
@@ -95,7 +111,7 @@ def filter_by_species_item(db: Session, query, species_item: str):
     subquery = subquery.correlate(models.FishingMonth)
     return query.filter(subquery.scalar_subquery() > 0)
 
-def filter_by_available_seats(db: Session, query, search_date: date, harbor: Optional[str], species_month_date: str, available_seats_number: int, can_booking:int):
+def filter_by_available_seats(db: Session, query, search_date: date, harbor: Optional[str], species_year: str, species_month: str, available_seats_number: int, can_booking:int):
 	"""FishingBooking 모델에 대한 서브쿼리 생성 및 예약 가능한 좌석 수 필터링"""
 	subquery = db.query(func.sum(models.FishingBooking.person_count))
 	subquery = subquery.join(models.Fishing)
@@ -104,7 +120,8 @@ def filter_by_available_seats(db: Session, query, search_date: date, harbor: Opt
 		subquery = subquery.filter(models.Fishing.harbor.has(HarborModels.Harbor.name == harbor))
 	subquery = subquery.filter(models.FishingBooking.fishing_id == models.Fishing.id)
 	subquery = subquery.filter(models.Fishing.id == models.FishingMonth.fishing_id)
-	subquery = subquery.filter(models.FishingMonth.month == species_month_date)
+	subquery = subquery.filter(models.FishingMonth.year == species_year)
+	subquery = subquery.filter(models.FishingMonth.month == species_month)
 	subquery = subquery.group_by(models.Fishing.id)
 	subquery = subquery.correlate(models.FishingMonth)
 
@@ -133,7 +150,8 @@ async def read_fishing(
 	# Get fishing month object
 	fishing_month_obj = db.query(models.FishingMonth).filter(
 		models.FishingMonth.fishing_id == fishing_pk,
-		models.FishingMonth.month == f"{dateYM.year}{dateYM.month:02d}"
+		models.FishingMonth.year == dateYM.year,
+		models.FishingMonth.month == f"{dateYM.month:02d}"
 	).options(
 		selectinload(models.FishingMonth.fishing_month_species)
 		.selectinload(models.FishingMonthSpecies.species)

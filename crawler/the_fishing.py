@@ -26,9 +26,86 @@ class TheFishingCrawler:
 		self.the_fishing_scraping_fishing_data()
 
 
-	def sunsang24_scraping_booked_data(self):
-		pass
+	def the_fishing_scraping_booked_data(self):
+		fishing_objs = self.session.get(f"{self.danakka_url}/api/fishing/crawler/read/fishing/data/?referrer=더피싱").json()
+
+		for fishing_obj in fishing_objs:
+			pk = fishing_obj['id']
+			uid = fishing_obj['fishing_crawler']['uid']
+			referrer = fishing_obj['fishing_crawler']['referrer']
+			display_business_name = fishing_obj['display_business_name']
+
+			if referrer != '더피싱':
+				continue
 			
+			fishing_page = self.session.get(f"{self.danakka_url}/api/fishing/crawler/read/fishing/data/")
+			soup = BeautifulSoup(fishing_page.text, 'html.parser')
+
+			#여기부터 수정
+			business_name = soup.find('a').find('div', {'class': 're_list_ship'}).text
+			
+			start_date = datetime.today()
+			end_date = start_date + relativedelta(months=11)
+
+			months = [dt.strftime("%Y%m") for dt in rrule.rrule(rrule.MONTHLY, dtstart=start_date, until=end_date)]
+
+			for month in months:
+				try:
+					res = self.session.get(f"{self.sunsang24_url}/ship/schedule_fleet_list/{uid}/{month}").json()[0]
+				except (IndexError, TypeError):
+					continue
+				print(f"{self.sunsang24_url}/ship/schedule_fleet_list/{uid}/{month}")
+
+				# Get species info
+				if display_business_name == res['ship']['name']:
+					species = res.get('fish_type')
+					maximum_seat = res.get('embarkation_num', 0)
+
+
+					data = {
+						"pk": pk,
+						"month": month,
+						"display_business_name": res['ship']['name'],
+						"maximum_seat": maximum_seat,
+						"species": species
+					}
+					print(data)
+
+					self.session.post(f"{self.danakka_url}/api/fishing/crawler/create/species/data/", json=data).raise_for_status()
+
+
+				# Get booked seat info
+				booked_done = 0
+				booked_ready = 0
+
+				if res['reservation_end']:
+					try:
+						booked_done = sum(map(int, re.findall(r"\(([0-9]+)\)", res['reservation_end'])))
+					except ValueError:
+						pass
+
+				if res['reservation_ready']:
+					try:
+						booked_ready = sum(map(int, re.findall(r"\(([0-9]+)\)", res['reservation_ready'])))
+					except ValueError:
+						pass
+
+				booked_seat = booked_done + booked_ready
+
+				if display_business_name == res['ship']['name'] and booked_seat != 0:
+
+					data = {
+						"pk": pk,
+						"date": res['sdate'],
+						"display_business_name": res['ship']['name'],
+						'booked_seat': booked_seat,
+					}
+
+					self.session.post(f'{self.danakka_url}/api/fishing/crawler/create/booked/data/', json=data).raise_for_status()
+			
+
+			
+		
 
 	def the_fishing_scraping_fishing_data(self):
 		service = Service()

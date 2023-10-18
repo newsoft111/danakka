@@ -12,11 +12,11 @@ class Sunsang24Crawler:
 		self.sunsang24_url = "https://api.sunsang24.com"
 		self.session = requests.Session()
 
-		self.sunsang24_scraping_fishing_data()
+		#self.sunsang24_scraping_fishing_data()
 		self.sunsang24_scraping_booked_data()
 
 	def sunsang24_scraping_booked_data(self):
-		fishing_objs = self.session.get(f"{self.danakka_url}/api/fishing/crawler/read/fishing/data/").json()
+		fishing_objs = self.session.get(f"{self.danakka_url}/api/fishing/crawler/read/fishing/data/?referrer=선상24").json()
 
 
 		for fishing_obj in fishing_objs:
@@ -32,14 +32,16 @@ class Sunsang24Crawler:
 			start_date = datetime.today()
 			end_date = start_date + relativedelta(months=11)
 
-			months = [dt.strftime("%Y%m") for dt in rrule.rrule(rrule.MONTHLY, dtstart=start_date, until=end_date)]
+			month_year_list = [dt.strftime("%Y%m") for dt in rrule.rrule(rrule.MONTHLY, dtstart=start_date, until=end_date)]
+			
+			month_year_dict = [{'year': month_year[:4], 'month': month_year[4:]} for month_year in month_year_list]
 
-			for month in months:
+			for month_year in month_year_dict:
 				try:
-					res = self.session.get(f"{self.sunsang24_url}/ship/schedule_fleet_list/{uid}/{month}").json()[0]
+					res = self.session.get(f"{self.sunsang24_url}/ship/schedule_fleet_list/{uid}/{month_year['year']}{month_year['month']}").json()[0]
 				except (IndexError, TypeError):
 					continue
-				print(f"{self.sunsang24_url}/ship/schedule_fleet_list/{uid}/{month}")
+				print(f"{self.sunsang24_url}/ship/schedule_fleet_list/{uid}/{month_year['year']}{month_year['month']}")
 
 				# Get species info
 				if display_business_name == res['ship']['name']:
@@ -49,7 +51,8 @@ class Sunsang24Crawler:
 
 					data = {
 						"pk": pk,
-						"month": month,
+						"year": month_year['year'],
+						"month": month_year['month'],
 						"display_business_name": res['ship']['name'],
 						"maximum_seat": maximum_seat,
 						"species": species

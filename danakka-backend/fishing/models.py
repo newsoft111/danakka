@@ -63,7 +63,8 @@ class FishingMonth(Base):
 
 	id = Column(Integer, primary_key=True, index=True)
 	fishing_id = Column(Integer, ForeignKey("fishing.id"))
-	month=Column(String(255))
+	year=Column(String(4))
+	month=Column(String(2))
 	maximum_seat=Column(Integer)
 
 	fishing = relationship("Fishing", back_populates="fishing_month")

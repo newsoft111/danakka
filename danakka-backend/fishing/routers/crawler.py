@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, UploadFile, Query
 from pydantic import BaseModel
 from .. import models
 import species.models as SpeciesModels
@@ -22,48 +22,64 @@ router = APIRouter()
 
 
 @router.get(f"/api/{APPNAME}/crawler/read/fishing/data/")
-async def read_fishing_data(db: Session = Depends(get_db)):
-	fishing_objs = db.query(FishingModels.Fishing).options(joinedload(FishingModels.Fishing.fishing_crawler)).all()
+async def read_fishing_data(
+	referrer: str = Query(description="Referrer"),
+	db: Session = Depends(get_db)
+):
+	fishing_objs = db.query(
+		FishingModels.Fishing
+	).join(
+		FishingModels.FishingCrawler
+	).filter(
+		FishingModels.FishingCrawler.referrer == referrer
+	).options(
+		joinedload(FishingModels.Fishing.fishing_crawler)
+	).all()
 	return fishing_objs
 
 
 
 class CreateSpeciesDataBaseModel(BaseModel):
     pk: int
+    year: str
     month: str
     display_business_name: str
     maximum_seat: int
     species: Optional[str] = None
-
+# 예약 데이터 가져오기전 어종과 month 생성 라우터
 @router.post(f"/api/{APPNAME}/crawler/create/species/data/")
 async def create_species_data(
-		create_species_data_base_model: CreateSpeciesDataBaseModel,  # 클래스의 인스턴스로 선언
+		create_species_data_base_model: CreateSpeciesDataBaseModel,
 		db: Session = Depends(get_db)
 	):
 	
 	pk = create_species_data_base_model.pk
+	year = create_species_data_base_model.year
 	month = create_species_data_base_model.month
 	display_business_name = create_species_data_base_model.display_business_name
 	maximum_seat = create_species_data_base_model.maximum_seat
 	species = create_species_data_base_model.species
 
 	fishing_obj = db.query(models.Fishing).filter_by(id=pk, display_business_name=display_business_name).first()
+
 	if fishing_obj:
 		if maximum_seat > fishing_obj.maximum_seat:
 			fishing_obj.maximum_seat = maximum_seat
 			db.commit()
 	else:
 		return {'result': '200'}
-		
+	
+
 	# handle SpeciesMonth objects
 	species_items = {}
 
 	if species is not None:
 		# create or update SpeciesMonth
-		fishing_month_obj = db.query(models.FishingMonth).filter_by(fishing_id=pk, month=month).first()
+		fishing_month_obj = db.query(models.FishingMonth).filter_by(fishing_id=pk, year=year, month=month).first()
 		if not fishing_month_obj:
 			fishing_month_obj = models.FishingMonth(
 				fishing=fishing_obj,
+				year=year,
 				month=month,
 				maximum_seat=maximum_seat,
 			)
